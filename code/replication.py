@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Empirical replication: build features and manuscript-listed tables."""
 
+from __future__ import annotations
+
 import argparse
 import logging
+import os
 import re
 import subprocess
 import sys
@@ -12,6 +15,7 @@ from datetime import datetime
 from pathlib import Path
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
@@ -24,30 +28,22 @@ from statsmodels.tsa.api import VAR
 
 py_warnings.filterwarnings("ignore")
 
-ROOT = Path(__file__).resolve().parent
-
-import logging
-from pathlib import Path
-
-import numpy as np
-import pandas as pd
-import yaml
-
-ROOT = Path(__file__).resolve().parent
-logger = logging.getLogger("gb_pipeline.build_features")
+CODE_DIR = Path(__file__).resolve().parent
+REPO_ROOT = CODE_DIR.parent
+logger = logging.getLogger("replication")
 
 
 def load_config() -> dict:
-    with open(ROOT / "configs" / "config.yaml") as f:
+    with open(CODE_DIR / "configs" / "config.yaml") as f:
         return yaml.safe_load(f)
 
 
 def _expand_user_path(path: Path) -> Path:
     if str(path).startswith("~"):
         return Path(str(path).replace("~", str(Path.home())))
-    if not path.is_absolute():
-        return ROOT / path
-    return path
+    if path.is_absolute():
+        return path
+    return REPO_ROOT / path
 
 
 def resolve_cleaned_paths(cfg: dict) -> tuple[Path, Path]:
@@ -243,8 +239,9 @@ def build():
     cfg = load_config()
     start = pd.Timestamp(cfg["date_range"]["start"])
     end = pd.Timestamp(cfg["date_range"]["end"])
-    raw_dir = ROOT / "data" / "raw"
-    processed_dir = ROOT / "data" / "processed"
+    paths = cfg.get("paths", {})
+    raw_dir = REPO_ROOT / paths.get("raw", "data/raw")
+    processed_dir = REPO_ROOT / paths.get("processed", "data/processed")
     processed_dir.mkdir(parents=True, exist_ok=True)
     long_csv_path, data2_csv_path = resolve_cleaned_paths(cfg)
     downloads = long_csv_path.parent
@@ -621,7 +618,7 @@ UOP_TEXTS = {
 }
 
 def run_green_specificity() -> None:
-    nlp_path = ROOT / "data" / "exports" / "tables" / "nlp_uop_classification.csv"
+    nlp_path = REPO_ROOT / "data" / "exports" / "tables" / "nlp_uop_classification.csv"
     if not nlp_path.exists():
         print(f"Missing {nlp_path}")
         sys.exit(1)
@@ -636,15 +633,14 @@ def run_green_specificity() -> None:
     print(f"Updated {nlp_path}")
 
 def run_climate_regressions() -> None:
-    import os
-    ROOT_STR = str(ROOT)
-    TABLES = os.path.join(ROOT_STR, "data", "exports", "tables")
-    FIGURES = os.path.join(ROOT_STR, "data", "exports", "figures")
+    repo = str(REPO_ROOT)
+    TABLES = os.path.join(repo, "data", "exports", "tables")
+    FIGURES = os.path.join(repo, "data", "exports", "figures")
     os.makedirs(TABLES, exist_ok=True)
     os.makedirs(FIGURES, exist_ok=True)
 
     feat = pd.read_csv(
-        os.path.join(ROOT_STR, "data", "processed", "features.csv"),
+        os.path.join(repo, "data", "processed", "features.csv"),
         parse_dates=["Date"],
     )
     feat = feat.set_index("Date").sort_index()
@@ -1303,6 +1299,8 @@ def run_climate_regressions() -> None:
     print("\n" + "=" * 70)
     print("ALL PHASES COMPLETE — Tables saved to data/exports/tables/")
     print("=" * 70)
+
+
 def exec_yearlies() -> None:
     """
     Yearly climate regressions — same spec as monthly but at annual frequency.
@@ -1312,20 +1310,12 @@ def exec_yearlies() -> None:
 
     Outputs: data/exports/tables/yearly_climate_ols.csv
     """
-    import os
-    import warnings
-    import numpy as np
-    import pandas as pd
-    import statsmodels.api as sm
-
-    warnings.filterwarnings("ignore")
-
-    ROOT = str(Path(__file__).resolve().parent)
-    TABLES = os.path.join(ROOT, "data", "exports", "tables")
+    rr = str(REPO_ROOT)
+    TABLES = os.path.join(rr, "data", "exports", "tables")
     os.makedirs(TABLES, exist_ok=True)
 
     feat = pd.read_csv(
-        os.path.join(ROOT, "data", "processed", "features.csv"),
+        os.path.join(rr, "data", "processed", "features.csv"),
         parse_dates=["Date"],
     )
     feat = feat.set_index("Date").sort_index()
@@ -1559,9 +1549,9 @@ def run_var_appendix() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(message)s")
     cfg = load_config()
 
-    processed_dir = ROOT / cfg["paths"]["processed"]
-    tables_dir = ROOT / cfg["paths"]["tables"]
-    fig_dir = ROOT / cfg["paths"]["figures"]
+    processed_dir = REPO_ROOT / cfg["paths"]["processed"]
+    tables_dir = REPO_ROOT / cfg["paths"]["tables"]
+    fig_dir = REPO_ROOT / cfg["paths"]["figures"]
     tables_dir.mkdir(parents=True, exist_ok=True)
     fig_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1607,12 +1597,12 @@ BOND_MAP = {
 
 def run_case_studies() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(message)s")
-    tables_dir = ROOT / "data" / "exports" / "tables"
-    fig_dir = ROOT / "data" / "exports" / "figures"
+    tables_dir = REPO_ROOT / "data" / "exports" / "tables"
+    fig_dir = REPO_ROOT / "data" / "exports" / "figures"
     tables_dir.mkdir(parents=True, exist_ok=True)
     fig_dir.mkdir(parents=True, exist_ok=True)
     features = pd.read_csv(
-        ROOT / "data" / "processed" / "features.csv",
+        REPO_ROOT / "data" / "processed" / "features.csv",
         index_col="Date", parse_dates=True,
     )
     bond_cols = [c for c in BOND_MAP if c in features.columns]
@@ -1697,7 +1687,7 @@ def run_case_studies() -> None:
 
 
 def setup_logging() -> logging.Logger:
-    log_dir = ROOT / "logs"
+    log_dir = CODE_DIR / "logs"
     log_dir.mkdir(exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     log = logging.getLogger("run")
@@ -1716,7 +1706,7 @@ def setup_logging() -> logging.Logger:
 def run_cmd(cmd: list[str], log: logging.Logger, cwd: Path | None = None) -> None:
     log.info("Running: %s", " ".join(cmd))
     t0 = time.time()
-    r = subprocess.run(cmd, cwd=cwd or ROOT, capture_output=True, text=True)
+    r = subprocess.run(cmd, cwd=cwd or CODE_DIR, capture_output=True, text=True)
     elapsed = time.time() - t0
     if r.stdout:
         log.info(r.stdout.rstrip())
@@ -1755,7 +1745,7 @@ def main() -> None:
             run_climate_regressions()
             exec_yearlies()
         elif stage == "garch":
-            run_cmd(["Rscript", str(ROOT / "garch_models.R")], log)
+            run_cmd(["Rscript", str(CODE_DIR / "garch_models.R")], log)
         elif stage == "var":
             run_var_appendix()
         elif stage == "case_studies":

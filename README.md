@@ -6,6 +6,7 @@
 |------|---------|
 | `manuscript/` | `researchpaperfinal.pdf`, LaTeX source, and figure PDFs used by the manuscript |
 | `sources/` | R Markdown used to weave narrative, tables, and figures |
+| `paper/` | Supporting materials for Rmd (e.g. `references.bib`) |
 | `data/raw/` | Inputs for constructing `features.csv` |
 | `data/processed/` | Processed panel (`features.csv`) and `.RData` objects from volatility models |
 | `data/exports/tables/` | Regression and diagnostic tables (CSV) |
@@ -14,20 +15,46 @@
 | `code/garch_models.R` | Univariate / multivariate volatility models (`Rscript`) |
 | `code/configs/config.yaml` | Sample window, paths, and model options |
 | `code/requirements.txt` | Python dependencies |
-| `MANIFEST.sha256` | Integrity checksums (every file listed except this manifest path) |
+| `code/install_r_deps.R` | One-shot CRAN installer for R packages used by GARCH / Rmd |
+| `code/validate_inputs.py` | Checks raw inputs and `features.csv` before a long run |
+| `scripts/reproduce.sh` | End-to-end replication (pip + Python full + R GARCH) |
+| `MANIFEST.sha256` | Integrity checksums for tracked files (see exclusion rules below) |
+
+Paths in code resolve to the **repository root** (`greenbondfinalfolder/`): processed data lives in `data/`, never via a symlink under `code/`.
 
 ## Requirements
 
-**Python** 3 with packages from `requirements.txt`. **R** with `rugarch`, `rmgarch`, `ggplot2`, and `yaml` for the GARCH step.
+**Python** 3 with packages from `code/requirements.txt`.
 
-`code/data` is a symlink to `../data`.
-
-## Run empirical pipeline
+**R** with CRAN packages for GARCH and optional R Markdown rendering. Install once:
 
 ```bash
-cd code
-python3 -m pip install -r requirements.txt
-python3 replication.py --stage full
+Rscript code/install_r_deps.R
+```
+
+## One-command replication
+
+From the repository root (`greenbondfinalfolder/`):
+
+```bash
+bash scripts/reproduce.sh
+```
+
+This installs Python deps, runs `python3 code/replication.py --stage full`, then `Rscript code/garch_models.R`. The Python `full` stage already invokes GARCH once; the final Rscript re-runs it so CSV/PDF totals always match standalone R outputs.
+
+(Optional) Validate inputs **after** building `features.csv` (fail-fast on empty or corrupt panel):
+
+```bash
+python3 code/validate_inputs.py
+```
+
+## Run empirical pipeline manually
+
+Always run from **repository root** (not inside `code/`), unless you explicitly `cd` and adjust paths:
+
+```bash
+python3 -m pip install -r code/requirements.txt
+python3 code/replication.py --stage full
 ```
 
 Use `--stage` with one of: `features`, `nlp`, `regressions`, `garch`, `var`, `case_studies`, or `full`. Outputs accumulate under `data/exports/` and `data/processed/`; nothing is deleted automatically.
@@ -42,7 +69,17 @@ pdflatex -interaction=nonstopmode Final_Paper_Submission_Final.tex
 
 ## Check file integrity
 
-From this directory:
+Regenerate the manifest (excludes `.git/`, this file, and `code/logs/`):
+
+```bash
+find . -type f \
+  -not -path "./.git/*" \
+  -not -path "./MANIFEST.sha256" \
+  -not -path "./code/logs/*" \
+  -exec shasum -a 256 {} \; > MANIFEST.sha256
+```
+
+Verify:
 
 ```bash
 shasum -a 256 -c MANIFEST.sha256

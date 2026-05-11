@@ -1,0 +1,7 @@
+Bond,Ticker,N_months,Ann_Return_pct,Ann_Std_pct,Sharpe,Corr_BGRN,Corr_LQD,Corr_SPY,Min_Price,Max_Price
+Apple Green Bond,AppleGB,25,2.5,2.58,0.254,0.911,0.906,0.42,93.42,99.18
+Duke Energy Green Bond,DukeEnergyGB,26,3.73,3.98,0.475,0.795,0.768,0.495,92.45,100.52
+Nature Conservancy GB,NatureConservancyGB,26,2.78,7.14,0.132,0.403,0.455,0.41,73.23,82.22
+JPMorgan Green Bond,JPMGB,26,0.83,2.29,-0.443,0.929,0.933,0.61,99.83,103.68
+NY Electric & Gas GB,NYElecGasGB,23,-4.96,11.23,-0.606,0.721,0.73,0.472,75.54,87.36
+Bank of America GB,BACGB,30,1.71,2.71,-0.051,0.771,0.777,0.59,98.94,104.73

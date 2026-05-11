@@ -29,14 +29,50 @@ get_script_dir <- function() {
   }
   normalizePath(getwd())
 }
-ROOT <- normalizePath(get_script_dir())
-cfg  <- yaml.load_file(file.path(ROOT, "configs", "config.yaml"))
+CODE_DIR <- normalizePath(get_script_dir())
+REPO_ROOT <- normalizePath(file.path(CODE_DIR, ".."))
+cfg  <- yaml.load_file(file.path(CODE_DIR, "configs", "config.yaml"))
 
-features_path <- file.path(ROOT, cfg$paths$processed, "features.csv")
-out_tables    <- file.path(ROOT, cfg$paths$tables)
-out_figures   <- file.path(ROOT, cfg$paths$figures)
+features_path <- file.path(REPO_ROOT, cfg$paths$processed, "features.csv")
+out_tables    <- file.path(REPO_ROOT, cfg$paths$tables)
+out_figures   <- file.path(REPO_ROOT, cfg$paths$figures)
 dir.create(out_tables, recursive = TRUE, showWarnings = FALSE)
 dir.create(out_figures, recursive = TRUE, showWarnings = FALSE)
+
+# Canonical names for vxreg* rows in exported CSV (matches default exog order above)
+VXREG_MAP_UNHEDGED <- c(
+  vxreg1 = "VIX_z",
+  vxreg2 = "delta_IG_OAS",
+  vxreg3 = "r_KRBN",
+  vxreg4 = "delta_10y",
+  vxreg5 = "CPU_z"
+)
+VXREG_MAP_HEDGED <- c(
+  vxreg1 = "VIX_z",
+  vxreg2 = "delta_IG_OAS",
+  vxreg3 = "r_KRBN",
+  vxreg4 = "CPU_z"
+)
+
+# Friendly names for EGARCH-X vxreg coefficients (order follows ext_mat columns)
+decorate_egarch_vxregs <- function(params_df, ext_col_names) {
+  df <- as.data.frame(params_df)
+  if (!("Parameter" %in% names(df))) {
+    df$Parameter <- rownames(df)
+  }
+  reg <- df$Parameter
+  out <- as.character(reg)
+  for (i in seq_along(out)) {
+    if (grepl("^vxreg[0-9]+$", out[i])) {
+      j <- suppressWarnings(as.integer(sub("^vxreg", "", out[i])))
+      if (!is.na(j) && j >= 1L && j <= length(ext_col_names)) {
+        out[i] <- ext_col_names[j]
+      }
+    }
+  }
+  df$Variable <- out
+  df
+}
 
 # --- Load data ----------------------------------------------------------------
 cat("Loading features from:", features_path, "\n")
@@ -205,6 +241,12 @@ if ("r_diff_BGRN_LQD" %in% egarchx_cols && length(egarchx_cols) >= 3) {
     # Save EGARCH-X parameter table
     params <- as.data.frame(egarchx_fit@fit$matcoef)
     params$Parameter <- rownames(params)
+    params <- decorate_egarch_vxregs(params, ext_cols)
+    params$Variable <- ifelse(
+      params$Parameter %in% names(VXREG_MAP_UNHEDGED),
+      VXREG_MAP_UNHEDGED[params$Parameter],
+      params$Variable
+    )
     write.csv(params, file.path(out_tables, "egarchx_parameters.csv"), row.names = FALSE)
   }
 } else {
@@ -254,6 +296,12 @@ if ("r_diff_hedged" %in% egarchx_hedged_cols && length(egarchx_hedged_cols) >= 3
     # Save parameter table
     params_h <- as.data.frame(egarchx_hedged_fit@fit$matcoef)
     params_h$Parameter <- rownames(params_h)
+    params_h <- decorate_egarch_vxregs(params_h, ext_h_cols)
+    params_h$Variable <- ifelse(
+      params_h$Parameter %in% names(VXREG_MAP_HEDGED),
+      VXREG_MAP_HEDGED[params_h$Parameter],
+      params_h$Variable
+    )
     write.csv(params_h, file.path(out_tables, "egarchx_hedged_parameters.csv"),
               row.names = FALSE)
 
@@ -391,7 +439,7 @@ cat("\n--- F. Saving GARCH results ---\n")
 
 save(best_models, all_ic, arch_tests,
      egarchx_fit, egarchx_hedged_fit, dcc_fit,
-     file = file.path(ROOT, cfg$paths$processed, "garch_results.RData"))
+     file = file.path(REPO_ROOT, cfg$paths$processed, "garch_results.RData"))
 cat("  Saved garch_results.RData\n")
 
 cat("\ngarch_models.R complete.\n")
