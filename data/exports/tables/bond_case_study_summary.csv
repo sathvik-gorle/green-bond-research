@@ -1,0 +1,7 @@
+Bond,Ticker,Start,End,N_months,Mean_monthly_ret,Std_monthly_ret,Min_price,Max_price,Current_price
+Apple Green Bond,AppleGB,2023-11-03,2025-12-31,25,0.205,0.742,93.42,99.18,99.18
+Duke Energy Green Bond,DukeEnergyGB,2023-10-06,2025-12-31,26,0.304,1.136,92.45,100.52,100.25
+Nature Conservancy GB,NatureConservancyGB,2023-10-06,2025-12-31,26,0.212,2.016,73.23,82.22,78.63
+JPMorgan Green Bond (6.07% 10/27),JPMGB,2023-10-31,2025-12-31,26,0.067,0.659,99.83,103.68,101.58
+NY Electric & Gas GB,NYElecGasGB,2024-01-31,2025-12-31,23,-0.465,3.264,75.54,87.36,78.12
+Bank of America Green Bond (EUR),BACGB,2023-06-30,2025-12-31,30,0.139,0.779,98.94,104.73,103.37

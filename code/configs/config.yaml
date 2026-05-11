@@ -1,0 +1,24 @@
+project:
+  name: green_bond_manuscript_replication
+
+date_range:
+  start: "2014-01-01"
+  end: "2025-12-31"
+
+garch:
+  distributions: ["norm", "std", "sstd"]
+
+nlp:
+  embedding_model: "all-MiniLM-L6-v2"
+  confidence_threshold: 0.5
+
+paths:
+  raw: "data/raw"
+  interim: "data/interim"
+  processed: "data/processed"
+  tables: "data/exports/tables"
+  figures: "data/exports/figures"
+  cleaned_data:
+    long_csv: "data/raw/greenbond021726_cleaned_long.csv"
+    data2_csv: "data/raw/green_bond_data2_cleaned.csv"
+    report_csv: "data/raw/greenbond021726_cleaning_report.csv"

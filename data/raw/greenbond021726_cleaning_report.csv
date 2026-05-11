@@ -1,0 +1,13 @@
+sheet_name,status,rows_scanned,records_extracted,unique_dates,duplicates_removed,null_last_price,null_secondary,secondary_field
+Apple gb weekly,ok,66,118,118,0,0,0,bid_price
+BAC GB EUR,ok,27,32,32,0,0,0,bid_price
+BGRN US Equity,ok,51,87,87,0,0,0,bid_price
+GBGLTRUU Index,ok,76,148,148,0,0,0,index_oas
+I36100US (corp gb index),ok,70,126,126,0,0,0,index_oas
+JPM 6.07 102227,ok,23,28,28,0,0,0,bid_price
+LUACOAS Index,ok,70,132,132,0,0,0,bid_price
+NY electric and gas,ok,13,25,25,0,0,0,bid_price
+Nature Conservancy,ok,84,119,45,74,0,0,bid_price
+Sheet6,empty_sheet,0,0,0,0,0,0,
+USGG10YR Index,ok,70,132,132,0,0,0,bid_price
+duke energy gb,ok,84,122,85,37,0,0,bid_price

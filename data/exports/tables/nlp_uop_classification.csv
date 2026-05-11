@@ -1,0 +1,7 @@
+Issuer,Sector,Coupon_pct,Maturity,Framework_Source,UoP_Category,Classification_Method,Keyword_Confidence,Keyword_Density,Embedding_Category,Max_Cosine_to_Seed,Cosine_to_Green_Ideal,Green_Specificity,Ann_Return_Spread_pct
+Apple Inc.,Technology,1.4,2031,Apple Green Bond Impact Report FY2023; Apple Environmental Progress Report 2025,renewables,keyword,0.462,0.1277,buildings,0.3788,1.0,0.4906,-4.34
+JPMorgan Chase,Financials,6.07,2029,JPMorgan Chase Sustainable Bond Framework (Oct 2022); Sustainalytics SPO,renewables,keyword,0.4,0.1061,buildings,0.4057,0.4256,0.5226,-4.14
+Duke Energy,Utilities,2.45,2033,Duke Energy Sustainable Financing Framework; S&P Global SPO,renewables,keyword,0.5,0.2174,renewables,0.3874,0.553,0.6901,-3.98
+Nature Conservancy,Non-Profit,3.05,2032,TNC Green Bond Framework; Sustainalytics SPO (2022),adaptation,keyword,0.5,0.304,adaptation,0.4741,0.5028,0.9452,-4.01
+NY Electric & Gas,Utilities,2.84,2029,Avangrid Framework for Green Financing (Dec 2023); NYSEG subsidiary of Avangrid/Iberdrola,renewables,keyword,0.5,0.3023,renewables,0.466,0.5015,0.9425,-7.06
+Bank of America,Financials,3.97,2030,Bank of America Green Bond Framework; Sustainalytics SPO,buildings,keyword,0.4,0.1887,buildings,0.38,0.42,0.657,-3.5

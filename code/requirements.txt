@@ -1,0 +1,21 @@
+# =============================================================================
+# Green Bond Final Paper Replication
+# =============================================================================
+
+# Core data stack
+pandas>=2.0
+numpy>=1.24
+pyarrow>=14.0
+pyyaml>=6.0
+openpyxl>=3.1
+
+# Econometrics
+statsmodels>=0.14
+scipy>=1.11
+
+# Forecast metrics and optional NLP embedding support
+scikit-learn>=1.3
+sentence-transformers>=2.2
+
+# Visualization
+matplotlib>=3.7

@@ -1,0 +1,1432 @@
+---
+title: |
+  | Frequency- and State-Dependent Climate Risk Pricing
+  | in U.S. Green Bond Markets
+author: "Sathvik Gorle"
+date: "March 2026"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+    keep_tex: true
+fontsize: 11pt
+geometry: margin=1in, includeheadfoot
+linestretch: 1.15
+bibliography: paper/references.bib
+link-citations: true
+header-includes:
+  - \usepackage[dvipsnames]{xcolor}
+  - \definecolor{TitleBlue}{HTML}{0E2A47}
+  - \definecolor{AccentBlue}{HTML}{1F6F8B}
+  - \definecolor{RuleGray}{HTML}{C9D6E3}
+  - \usepackage{float}
+  - \usepackage{booktabs}
+  - \usepackage{longtable}
+  - \usepackage{array}
+  - \usepackage{multirow}
+  - \usepackage{threeparttable}
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{graphicx}
+  - \usepackage{setspace}
+  - \usepackage{caption}
+  - \captionsetup{font=small, labelfont={bf,color=TitleBlue}, justification=raggedright, singlelinecheck=false}
+  - \renewcommand{\arraystretch}{1.12}
+  - \setlength{\tabcolsep}{6pt}
+  - \setlength{\LTleft}{0pt}
+  - \setlength{\LTright}{0pt}
+  - \setlength{\belowcaptionskip}{6pt}
+  - \setlength{\abovecaptionskip}{4pt}
+  - \setlength{\textfloatsep}{12pt plus 2pt minus 2pt}
+  - \setlength{\floatsep}{10pt plus 2pt minus 2pt}
+  - \setlength{\intextsep}{10pt plus 2pt minus 2pt}
+  - \floatplacement{figure}{H}
+  - \floatplacement{table}{H}
+  - \setcounter{tocdepth}{2}
+  - \makeatletter
+  - \renewcommand{\section}{\@startsection{section}{1}{\z@}{-2.0ex \@plus -0.5ex \@minus -.2ex}{0.8ex \@plus.2ex}{\normalfont\Large\bfseries\color{TitleBlue}}}
+  - \renewcommand{\subsection}{\@startsection{subsection}{2}{\z@}{-1.6ex\@plus -0.5ex \@minus -.2ex}{0.6ex \@plus.2ex}{\normalfont\large\bfseries\color{TitleBlue}}}
+  - \renewcommand{\subsubsection}{\@startsection{subsubsection}{3}{\z@}{-1.2ex\@plus -0.5ex \@minus -.2ex}{0.5ex \@plus.2ex}{\normalfont\normalsize\bfseries\color{AccentBlue}}}
+  - \makeatother
+  - |
+    \makeatletter
+    \def\maketitle{
+    \begin{titlepage}
+    \thispagestyle{empty}
+    \centering
+    \vspace*{2.1cm}
+    {\LARGE\bfseries\color{TitleBlue}\@title\par}
+    \vspace{0.55cm}
+    {\normalsize\color{AccentBlue}A Conditional Pricing Framework Linking Greenium, Climate Exposure, and Macro-Policy Regimes\par}
+    \vspace{0.70cm}
+    {\large Sathvik Gorle\par}
+    {\normalsize North Carolina School of Science and Mathematics\par}
+    \vspace{0.70cm}
+    {\large\textbf{Research Mentors}\par}
+    \vspace{0.35cm}
+    {\normalsize Richard Mei \textbullet{} Nan Zhang \textbullet{} Andrew Zhai\par}
+    \vspace{0.70cm}
+    {\normalsize \@date\par}
+    \vfill
+    {\color{RuleGray}\rule{0.86\linewidth}{0.8pt}\par}
+    \end{titlepage}
+    \setcounter{page}{1}
+    }
+    \makeatother
+  - \usepackage{fancyhdr}
+  - \usepackage{ragged2e}
+  - \clubpenalty=10000
+  - \widowpenalty=10000
+  - \pagestyle{fancy}
+  - \fancyhf{}
+  - \fancyhead[L]{\small\itshape Frequency- and State-Dependent Climate Risk Pricing}
+  - \fancyhead[R]{\small \thepage}
+  - \fancyfoot[C]{}
+  - \renewcommand{\headrulewidth}{0.5pt}
+  - \renewcommand{\footrulewidth}{0pt}
+  - \setlength{\headheight}{14pt}
+  - \renewcommand{\abstractname}{\large Abstract}
+  - \setlength{\parindent}{1.15em}
+  - \setlength{\parskip}{0.35em}
+  - \emergencystretch=2em
+  - \tolerance=2000
+  - \AtBeginDocument{\hypersetup{colorlinks=true,linkcolor=TitleBlue,citecolor=AccentBlue,urlcolor=AccentBlue}}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, warning = FALSE, message = FALSE,
+  fig.align = "center", fig.width = 6.35, fig.height = 3.95,
+  out.width = "0.88\\linewidth", fig.pos = "H"
+)
+
+library(knitr)
+library(kableExtra)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(scales)
+library(gridExtra)
+
+ROOT <- normalizePath(".")
+tables_dir <- file.path(ROOT, "data", "exports", "tables")
+figures_dir <- file.path(ROOT, "data", "exports", "figures")
+
+options(knitr.kable.NA = "")
+
+wrap_text <- function(x, width = 30) {
+  vapply(
+    x,
+    function(s) paste(strwrap(as.character(s), width = width), collapse = "\n"),
+    character(1)
+  )
+}
+
+read_tbl <- function(fname) {
+  path <- file.path(tables_dir, fname)
+  if (!file.exists(path)) return(data.frame())
+  df <- read.csv(path, check.names = FALSE)
+  if (ncol(df) > 0 && (names(df)[1] %in% c("X", "") || grepl("^Unnamed", names(df)[1]))) {
+    names(df)[1] <- "variable"
+  }
+  df
+}
+
+to_num <- function(x) suppressWarnings(as.numeric(x))
+
+## Brand-aligned palette; sector colors follow Okabe--Ito-style distinguishability for print + color vision
+paper_palette <- c(
+  "Financials" = "#0072B2",
+  "Technology" = "#E69F00",
+  "Utilities" = "#009E73",
+  "Non-Profit" = "#CC79A7",
+  "Monthly" = "#0072B2",
+  "Yearly" = "#D55E00",
+  "Climate" = "#0072B2",
+  "Macro" = "#000000",
+  "RateHike" = "#D55E00",
+  "PostIRA" = "#009E73",
+  "Baseline" = "#6A7C8F"
+)
+
+## Extra categorical colors (Okabe--Ito) for many trajectories / FEVD shocks
+cb_cat <- c(
+  "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
+  "#D55E00", "#CC79A7", "#000000"
+)
+
+paper_theme <- function(base_size = 10.5) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      plot.background = element_rect(fill = "white", color = NA),
+      panel.background = element_rect(fill = "white", color = NA),
+      legend.background = element_rect(fill = "transparent", color = NA),
+      legend.key = element_rect(fill = "transparent", color = NA),
+      panel.grid.minor = element_blank(),
+      panel.grid.major.x = element_blank(),
+      panel.grid.major.y = element_line(color = "#D7E1E8", linewidth = 0.32),
+      axis.title = element_text(face = "bold", color = "#0E2A47", size = rel(0.98)),
+      axis.text = element_text(color = "#2A3D4D", size = rel(0.92)),
+      axis.ticks = element_line(color = "#AAB8C4", linewidth = 0.25),
+      strip.text = element_text(face = "bold", color = "#0E2A47", size = rel(0.95)),
+      legend.position = "bottom",
+      legend.title = element_text(face = "bold", color = "#0E2A47", size = rel(0.9)),
+      legend.text = element_text(color = "#314658", size = rel(0.88)),
+      legend.key.width = grid::unit(1.15, "lines"),
+      legend.key.height = grid::unit(0.85, "lines"),
+      plot.title = element_text(face = "bold", color = "#0E2A47", size = rel(1.03)),
+      plot.subtitle = element_text(color = "#4A6478", size = rel(0.92)),
+      plot.caption = element_text(color = "#5C7080", hjust = 0, size = rel(0.85)),
+      plot.margin = margin(5, 8, 4, 6)
+    )
+}
+
+paper_kbl <- function(x, font_size = 8, latex_options = c("hold_position", "scale_down"), ...) {
+  kbl(
+    x,
+    format = "latex",
+    booktabs = TRUE,
+    longtable = FALSE,
+    linesep = "",
+    ...
+  ) %>%
+    kable_styling(
+      latex_options = latex_options,
+      font_size = font_size,
+      full_width = FALSE,
+      position = "center"
+    )
+}
+
+panel_grob <- function(plot, label) {
+  grid::grobTree(
+    ggplotGrob(plot),
+    grid::textGrob(
+      label,
+      x = grid::unit(0.008, "npc"),
+      y = grid::unit(0.985, "npc"),
+      just = c("left", "top"),
+      gp = grid::gpar(fontface = "bold", col = "#0E2A47", cex = 1.08, lineheight = 0.9)
+    )
+  )
+}
+
+compose_panels <- function(..., labels = LETTERS[seq_along(list(...))], ncol = 2, widths = NULL) {
+  grobs <- Map(panel_grob, list(...), labels)
+  gridExtra::arrangeGrob(grobs = grobs, ncol = ncol, widths = widths)
+}
+
+coef_bounds <- function(est, se) {
+  data.frame(
+    estimate = est,
+    lower = est - 1.96 * se,
+    upper = est + 1.96 * se
+  )
+}
+
+star <- function(p) {
+  pn <- suppressWarnings(as.numeric(p))
+  if (length(pn) == 0L) return("")
+  pn <- pn[[1L]]
+  if (is.na(pn)) return("")
+  if (pn < 0.01) return("***")
+  if (pn < 0.05) return("**")
+  if (pn < 0.10) return("*")
+  ""
+}
+
+## Human-readable labels for regression output (CSV names -> table text)
+regressor_labs <- c(
+  const = "Intercept",
+  CPU_z = "Climate policy uncertainty (z-score)",
+  ACRI_z = "Physical climate risk (z-score)",
+  delta_10y = "Change in 10-year Treasury yield",
+  delta_IG_OAS = "Change in IG corporate option-adjusted spread",
+  VIX_z = "Equity volatility, VIX (z-score)",
+  r_KRBN = "KRBN carbon-transition ETF return",
+  KRBN_x_RateHike = "KRBN return, interaction with rate-hike regime",
+  KRBN_x_PostIRA = "KRBN return, interaction with post-IRA period",
+  PostIRA = "Post-IRA period (dummy)",
+  RateHike = "Rate-hike regime (dummy)",
+  HighVIX = "High-VIX regime (dummy)",
+  KRBN_x_HighVIX = "KRBN return, interaction with high-VIX regime",
+  Post_6mo = "Months 7+ after first observed price month",
+  N = "Observations",
+  R2_adj = "Adjusted $R^2$"
+)
+
+label_regressor <- function(x) {
+  x <- as.character(x)
+  vapply(x, function(v) if (v %in% names(regressor_labs)) regressor_labs[[v]] else v, character(1))
+}
+
+stars_note <- "Significance: *** p < 0.01, ** p < 0.05, * p < 0.10."
+
+mc   <- read_tbl("monthly_climate_ols.csv")
+yk   <- read_tbl("yearly_climate_krbn_ols.csv")
+krbn <- read_tbl("krbn_conditional_interactions.csv")
+aud  <- read_tbl("data_cleaning_audit.csv")
+
+get_metric <- function(df, metric) {
+  if (nrow(df) == 0 || !all(c("metric", "value") %in% names(df))) return(NA)
+  idx <- which(df$metric == metric)
+  if (length(idx) == 0) return(NA)
+  as.character(df$value[idx[1]])
+}
+
+sample_start <- get_metric(aud, "sample_start")
+sample_end <- get_metric(aud, "sample_end")
+
+var_sys3 <- NULL
+var_sys4 <- NULL
+var_results_path <- file.path(ROOT, "data", "processed", "var_results.RData")
+if (file.exists(var_results_path)) {
+  var_env <- new.env()
+  load(var_results_path, envir = var_env)
+  if (exists("sys3", envir = var_env)) var_sys3 <- get("sys3", envir = var_env)
+  if (exists("sys4", envir = var_env)) var_sys4 <- get("sys4", envir = var_env)
+}
+```
+
+\begin{abstract}
+\noindent U.S. greenium estimates are usually small, often 1--7 bps. Climate channels can be larger, especially when physical exposure, policy uncertainty, or transition risk is clear. This paper argues that the tension is partly a measurement problem. Climate pricing in green bond markets depends on horizon, macro-policy state, and bond-level channel, so static pooled tests can average meaningful effects away. The market-level sample runs from 2014 to 2024, and a six-bond Bloomberg case study extends through 2025-12-31. Physical climate risk, measured by ACRI, enters the monthly green-minus-conventional return gap ($p = 0.048$). Climate policy uncertainty is easier to see in a low-power annual check ($N = 11$). Carbon-transition sensitivity, proxied by KRBN, strengthens during Fed rate-hike periods ($p = 0.044$) and weakens after the Inflation Reduction Act ($p = 0.040$). The six-bond case study is exploratory mechanism evidence using benchmark-relative total returns versus LQD. It is not a matched OAS panel and not population-level cross-sectional inference. The appendix evidence is most consistent with credibility and gradual repricing narratives rather than a static label premium. Daily event windows are mostly null, which points to steady absorption rather than one-day announcement effects.
+
+\medskip
+\noindent \textbf{Keywords:} Green bonds, greenium, climate risk pricing, transition risk, policy uncertainty, carbon ETF (KRBN), regime dependence
+\end{abstract}
+
+# Introduction
+
+U.S. greenium estimates are small, often 1--7 basis points [@baker2022; @partridge2020; @sojoudi2025]. Climate channels tell a different story. In exposed segments, they can move spreads by 3--40 bps [@painter2020; @li2024; @smull2023]. Policy uncertainty can add another 4--15 bps in stress periods [@pham2022; @park2020; @tiwari2022; @mari2024]. If these literatures measure the same object, the evidence is hard to square. The **greenium**, or the yield or spread advantage of a green bond over a similar conventional bond, should reflect climate information if investors price it. So why does it look so small?
+
+We argue that the issue lies in specification, not in market failure. Greenium studies usually estimate average price gaps across bond traits. Macro-policy dynamics often sit outside the model. Climate-spillover studies do the opposite: they find larger conditional effects, but they do not always connect those effects to bond-level pricing. This paper links the two. It treats climate pricing as conditional on three dimensions: **horizon**, or the frequency at which the signal appears; **state**, or the macro-policy regime; and **channel**, or the way climate information moves through rates and spreads. A small average greenium can therefore hide larger effects that differ by time, regime, and channel.
+
+The paper makes three contributions. First, it shows that climate pricing depends on frequency. Physical climate risk, measured by the Actuaries Climate Risk Index (ACRI), enters pricing at the monthly horizon ($p = 0.048$). Climate policy uncertainty (CPU) is easier to see after annual aggregation, but the annual model has only 11 observations and is treated as a horizon check. Second, carbon-transition sensitivity depends on state. Measured with the KraneShares Global Carbon ETF (KRBN), it rises during Fed rate-hike periods ($p = 0.044$) and falls after the Inflation Reduction Act ($p = 0.040$). Third, the six-bond Bloomberg case study is exploratory mechanism evidence using benchmark-relative total returns versus LQD. It is not a matched OAS panel and not population-level cross-sectional inference. The case evidence is used only to check whether credibility and gradual repricing narratives are plausible in actual bond histories.
+
+The rest of the paper is organized as follows. Section 2 reviews the literature and states the hypotheses. Section 3 describes the data and empirical design. Section 4 reports the results. Sections 5 and 6 discuss limits and conclude.
+
+# Literature and Hypotheses
+
+Green bond pricing studies usually begin with the **greenium**, the yield or spread advantage of a green bond over a similar conventional bond. In U.S. evidence, this premium is usually small. Matched municipal and corporate studies often find residual green premiums around 1--7 bps after controls for rating, maturity, sector, and tax status [@baker2022; @karpf2018; @partridge2020; @sojoudi2025]. That does not mean the green label is irrelevant. It means the label sits inside a larger bond-pricing hierarchy. Term structure, credit quality, liquidity, and tax treatment often explain more of the spread than greenness itself.
+
+Those ordinary pricing factors matter for interpretation. Yield-curve controls help separate the green label from maturity effects, because green issuance often clusters at specific tenors. Credit quality can dominate the label: a one-notch rating difference can move spreads by far more than a typical greenium [@baker2022; @painter2020]. Liquidity can also be similar in size to the green premium, especially in municipal bonds where trading is thin [@liaw2020; @macaskill2021]. Tax treatment is larger still. Tax-exempt status can compress yields by enough that a separate green discount becomes hard to identify [@partridge2020; @baker2022]. These facts are why this paper treats the greenium as a small layer on top of rates, credit, liquidity, and tax structure rather than as the main pricing force.
+
+A second literature shows that climate risk can be priced more strongly when exposure is clear. Painter [-@painter2020] links sea-level-rise exposure to higher borrowing costs in long-maturity municipal bonds. Li et al. [-@li2024] find that flood risk affects water and sewer revenue bond yields, with regional variation. Broader composite-risk studies often find smaller average effects [@smull2023]. This pattern suggests that physical climate risk is not spread evenly across all issuers. It is more visible in exposed credits, longer maturities, and sectors where the cash-flow channel is easier to see.
+
+Green bonds complicate the sign of physical-risk pricing. A bond that funds adaptation or resilience may lower future climate losses and look hedge-like. A bond tied to hazard-exposed operating assets may instead amplify climate exposure. The same green label can therefore point in opposite directions depending on the use of proceeds and issuer exposure. This motivates a cautious bond-level mechanism exercise rather than a broad claim about all green bonds.
+
+Transition risk and climate policy uncertainty add a state dimension. Corporate credit evidence links higher transition exposure to wider spreads and repricing around policy shifts [@bolton2023; @agliardi2021; @seltzer2022]. Green-bond and clean-energy markets also become more connected during stress [@park2020; @tiwari2022]. Policy uncertainty can move green bond returns or implied spreads by a few basis points on average, with larger effects during stress periods [@pham2022; @mari2024]. These findings suggest that carbon-transition sensitivity should not be constant. It should strengthen or weaken with monetary and policy regimes.
+
+The relative size of these forces is central to the design. A 1--7 bps greenium can be real and still be small compared with standard bond risks. Rate changes and credit-spread shocks dominate many return-gap models. Liquidity and verification can be similar in size to the green label. Physical climate risk can exceed the greenium when exposure is local, long-lived, and easy to measure. Climate policy uncertainty may appear at longer horizons because regulation and lawmaking unfold slowly. This helps explain the tension between small average greeniums and larger climate-risk estimates: they are often measuring different objects.
+
+This paper links those strands with a conditional pricing framework. The core claim is not that green bonds always earn a large climate premium. The claim is narrower: climate information becomes easier to detect when the model uses the right horizon, the right macro-policy state, and the right bond-level channel. Static pooled estimates can miss that structure.
+
+\textbf{H1 (Frequency dependence).} Climate variables explain more at monthly or yearly horizons than at daily horizons.
+
+\textbf{H2 (State dependence).} Carbon-transition sensitivity changes across monetary-policy and climate-policy states.
+
+\textbf{H3 (Rate and credit dominance).} Rate and credit channels drive most of the green-minus-conventional return gap. Climate variables add to these channels but do not replace them.
+
+\textbf{H4 (Green \(\times\) climate-risk ambiguity).} H4a predicts that adaptation- or resilience-oriented green bonds should show more favorable pricing when physical climate risk rises, reflected in narrower spreads or stronger benchmark-relative performance. H4b predicts that green bonds tied to hazard-exposed operating credits should show weaker pricing when physical climate risk rises, reflected in wider spreads or weaker benchmark-relative performance.
+
+# Data and Empirical Design
+
+## Roadmap for the empirical work
+
+The framework gives a simple way to read the evidence before turning to the results. Let \(\Delta r_t\) denote the green-minus-conventional return gap. The baseline model is:
+
+\[
+\Delta r_t = \alpha + \beta_1 CPU_t + \beta_2 ACRI_t + \beta_3 \Delta Y_t^{10y} + \beta_4 VIX_t + \beta_5 \Delta OAS_t^{IG} + \varepsilon_t.
+\]
+
+Section 4 defines the symbols and coding rules. Climate information enters through three fixed-income channels. The **rate channel** reprices duration exposure when discount rates change. The **credit channel** works through IG spreads and relative credit risk. The **risk-appetite channel** captures shifts in demand when volatility or policy uncertainty changes. These channels should explain most variation in $\Delta r_t$. Climate variables add conditional information on top of them.
+
+This structure has two implications. First, climate information changes slowly and may already sit in expectations. Daily models should miss much of its effect. Weak daily regressions and event windows are therefore not surprising, even if climate risk is priced at lower frequency. Second, climate pricing may vary across macro-policy states. An unconditional regression averages strong and weak signals, which shrinks the estimate. Regime interactions help recover that structure.
+
+The paper also uses **VAR** models (vector autoregressions), **IRFs** (impulse response functions), and **FEVDs** (forecast error variance decompositions) to describe daily channel dynamics. These diagnostics are useful for showing information flow. They are not the main source of identification.
+
+## Baseline specification
+
+### Key variables and notation
+
+The paper and tables use these terms:
+
+- **Dependent variable (market level):** Green-minus-conventional **return gap** (green corporate or index return minus the conventional IG benchmark return), denoted $\Delta r_t$ in equations.
+- **ACRI:** Actuaries Climate Risk Index (physical climate risk). In regressions it is usually standardized (**ACRI\_z**, z-score).
+- **CPU:** Climate Policy Uncertainty index of @gavriilidis2021. In regressions, **CPU\_z** is the z-score.
+- **KRBN:** KraneShares Global Carbon ETF, and **r\_KRBN** denotes its return. Used as a proxy for **carbon-transition** or climate-policy-sensitive pricing.
+- **LQD:** iShares iBoxx \$ Investment Grade Corporate Bond ETF, the main **conventional IG credit benchmark** for bond-level comparisons.
+- **VIX:** CBOE Volatility Index, and **VIX\_z** is the z-score where used.
+- **IRA:** Inflation Reduction Act (2022), and **post-IRA** indicates the period after its enactment in interaction terms.
+- **OAS:** Option-adjusted spread on IG corporates, and **delta\_IG\_OAS** is its change (first difference).
+- **delta\_10y:** Change in the 10-year Treasury yield (first difference), aligned with the frequency of the regression (monthly or daily).
+- **HAC:** Heteroskedasticity- and autocorrelation-consistent (**Newey--West**) standard errors for time-series regressions.
+- **UoP:** Use of proceeds (bond prospectus language on green projects).
+
+Variables with a **\_z** suffix are **standardized** (mean zero, unit variance) in the month or day of estimation. **First-difference** regressors (\texttt{delta\_}) use the same units as returns in each model.
+
+### Market-level panel
+
+The market-level data combine Bloomberg green and conventional fixed-income indices, ETF proxies, FRED macro-financial variables, climate policy uncertainty [@gavriilidis2021], and climate-risk proxies. Representative market proxies include Bloomberg green and conventional fixed-income index series, BGRN and LQD ETF benchmarks, IG OAS inputs such as LUACOAS, 10-year Treasury yield changes, VIX, ACRI, CPU, and KRBN. Exact mnemonics follow the project data export. The study window is `r sample_start` to `r sample_end`. Because the return series pass standard stationarity checks, the models use returns throughout. The **market-level regressions** in the text and appendix end in 2024. For example, the daily KRBN models use $N = 1{,}618$ trading days from 2014 to 2024. The **descriptive bond tables** use each bond's available Bloomberg history through `r sample_end`, often through 2025.
+
+### Bond-level case-study panel
+
+Bond-level regressions ask a narrower question: do the market-level mechanisms also appear by issuer? The sample has only $N = 6$ issuers, so it cannot support broad cross-sectional inference. Still, it can check mechanisms.
+
+We hand collect six Bloomberg-sourced green bonds: technology (Apple), financials (JPMorgan Chase, Bank of America), utilities (Duke Energy, NY Electric \& Gas), and non-profit (Nature Conservancy). Bond price data run from mid-2023 through end-2025. At this level, the main object is the return gap versus **LQD**, the iShares investment-grade corporate bond ETF. This is a **return gap**, not matched OAS. It follows the logic of greenium tests without claiming to measure yield or spread gaps.
+
+## Standard errors and inference notes
+
+We test the thesis in three steps. The monthly model comes first and asks whether climate variables explain the green-minus-conventional return gap after controls for standard channels. Next, aggregation and regime-interaction tests ask whether the signal changes across horizons and macro-policy states. The final step is more concrete: bond-level checks ask whether issuer patterns fit the market-level interpretation.
+
+### Monthly model (primary)
+
+Monthly regressions use the green-minus-conventional return gap as the dependent variable. The controls include climate variables and standard macro channels. Newey--West (HAC) standard errors account for serial dependence. This model is the main test for H1 (frequency dependence) and H3 (rate and credit dominance).
+
+### KRBN state interactions
+
+To test H2 (state dependence), we estimate nested daily interaction models with Huber--White robust standard errors:
+
+\[
+\Delta r_t = \alpha + \theta r_t^{KRBN} + \phi (r_t^{KRBN} \times D_t) + \Gamma X_t + u_t,
+\]
+
+where $r_t^{KRBN}$ is the KRBN ETF return, $D_t$ is a dummy for macro or policy regimes (Fed rate-hiking periods, post-IRA dates, high VIX), and $X_t$ includes the same macro controls as the monthly model. The interaction term $\phi$ tests whether carbon-transition sensitivity changes across regime boundaries.
+
+### Supporting diagnostics
+
+Daily VAR models provide Granger causality tests and impulse response functions. The bond-level regressions serve a different role. They test whether rate and policy channels from the market model also appear by issuer, while the descriptive use-of-proceeds scores provide mechanism context. Both exercises support the main tests; they do not identify causal effects or estimate a full matched OAS design.
+
+### Identification and its limits
+
+The main endogeneity concern is straightforward: KRBN returns, ACRI, and green bond spreads may all respond to the same unobserved shocks, such as oil prices or flight-to-safety. Three design choices help. First, green-minus-conventional gaps remove common credit shocks. Second, HAC standard errors and controls for 10-year Treasury changes, IG OAS changes, VIX, and CPU address standard confounders. Third, regime interactions estimate slope changes around observed policy states instead of imposing one constant coefficient. Even so, the design does not establish causality. We have no instrument for KRBN or ACRI, so the coefficients are conditional associations.
+
+Because the empirical design estimates several related specifications, p-values are interpreted as evidence on a coherent conditional-pricing pattern rather than as isolated discoveries adjusted for every possible test.
+
+## NLP use of proceeds and bond-window constructions
+
+**Why use-of-proceeds text should matter for pricing.** For a given issuer, green and conventional bonds should have similar contractual cash-flow risk: credit quality, currency, and seniority are often close. The main difference is non-contractual. A green bond says that proceeds will fund a defined set of environmental projects. If that claim were only marketing, investors would treat all green labels alike after controlling for ratings and duration. Prospectus or framework language would not predict relative pricing. If investors price **credibility** and **allocation precision**, clearer use-of-proceeds language should carry information. Following the signaling view in [@flammer2021], we summarize frameworks and second-party opinions with measures of environmental specificity.
+
+**Measurement.** We classify use of proceeds with keyword rules, sentence-transformer embeddings, and a green specificity score based on 42 environmental keywords. Sources include issuer frameworks and second-party opinions.
+
+
+
+
+**Reading the cross section.** Appendix Table \ref{tab:uop-nlp} is not an issuer ranking. It shows, descriptively, how much the green label seems to say once the framework language is read. Appendix Figure \ref{fig:mechanism-profile-plot} gives the same idea in a plot. Panel A asks which issuers use more specific green language. Panel B asks whether higher specificity lines up with green bond performance relative to LQD. The fitted line describes only these six issuers.
+
+**Bridge to the pricing tests.** The mechanism question is whether this variation still matters after controls for rates, spreads, and volatility. If investors price only a binary green label, specificity should not track relative performance. Section 4 treats these descriptive gaps as mechanism evidence, not as a population-level pricing test.
+
+# Results
+
+The results follow the paper's main claim: climate pricing in green bonds is conditional, not absent. The first question is whether climate variables matter after standard fixed-income controls. The second is whether their effects depend on horizon and macro-policy state. The last question is more practical: does the bond-level evidence look more like signaling or like a static label premium? In other words, the section moves from whether climate matters to when and how it seems to matter.
+
+## Frequency dependence
+
+```{r monthly-main}
+if (nrow(mc) > 0) {
+  m <- mc[!(mc$Variable %in% c("N", "R2_adj")), c("Variable", "Coef", "SE_HAC", "t_stat", "p_value")]
+  m$Variable <- label_regressor(m$Variable)
+  m$p_value <- suppressWarnings(as.numeric(m$p_value))
+  m$Sig <- vapply(m$p_value, star, character(1))
+  names(m) <- c("Regressor", "Coefficient", "Std. error (HAC)", "t", "p-value", "Sig.")
+  paper_kbl(
+    m,
+    font_size = 8,
+    digits = 4,
+    row.names = FALSE,
+    escape = TRUE,
+    caption = "Monthly climate regression on the green-minus-conventional return gap. Physical climate risk (ACRI z-score) is significant, and climate policy uncertainty (CPU z-score) is marginal at monthly frequency. Newey--West (HAC) standard errors. Sample 2014--2024, N = 130 monthly observations.",
+    label = "monthly-main"
+  ) %>%
+    footnote(general = stars_note, general_title = "Notes: ", threeparttable = TRUE)
+}
+```
+
+```{r climate-evidence-panels, fig.cap="Monthly and annual climate-risk coefficients. Panel A reports monthly coefficient estimates with 95\\% HAC confidence intervals. Panel B compares ACRI and CPU estimates across monthly and annual aggregation.", fig.height=4.25, out.width="0.88\\linewidth", fig.pos="H"}
+if (nrow(mc) > 0 && nrow(yk) > 0) {
+  pt_size <- 3.15
+
+  monthly_plot <- mc %>%
+    filter(!(Variable %in% c("const", "N", "R2_adj"))) %>%
+    transmute(
+      Variable,
+      Regressor = factor(
+        case_when(
+          Variable == "CPU_z" ~ "CPU (z)",
+          Variable == "ACRI_z" ~ "ACRI (z)",
+          Variable == "delta_10y" ~ "10Y Treasury change",
+          Variable == "VIX_z" ~ "VIX (z)",
+          Variable == "delta_IG_OAS" ~ "IG OAS change",
+          TRUE ~ as.character(Variable)
+        ),
+        levels = rev(c("CPU (z)", "ACRI (z)", "VIX (z)", "10Y Treasury change", "IG OAS change"))
+      ),
+      Estimate = to_num(Coef),
+      SE = to_num(SE_HAC),
+      xmin = Estimate - 1.96 * SE,
+      xmax = Estimate + 1.96 * SE,
+      Family = factor(
+        ifelse(Variable %in% c("ACRI_z", "CPU_z"), "Climate", "Macro"),
+        levels = c("Climate", "Macro")
+      )
+    )
+
+  p_monthly <- ggplot(monthly_plot, aes(y = Regressor, x = Estimate, color = Family)) +
+    geom_vline(xintercept = 0, color = "#A8BCC9", linewidth = 0.5, linetype = "solid") +
+    geom_errorbarh(aes(xmin = xmin, xmax = xmax), height = 0.22, linewidth = 0.85, alpha = 0.95) +
+    geom_point(size = pt_size, stroke = 0.35) +
+    scale_color_manual(values = paper_palette[c("Climate", "Macro")], labels = c(Climate = "Climate", Macro = "Macro / rates")) +
+    scale_x_continuous(labels = label_number(accuracy = 0.1), expand = expansion(mult = c(0.07, 0.11))) +
+    labs(x = "Coefficient (monthly; HAC)", y = NULL, color = NULL) +
+    paper_theme(base_size = 10) +
+    theme(
+      legend.position = "top",
+      legend.justification = "left",
+      legend.margin = margin(0, 0, 2, 0)
+    )
+
+  clim_plot <- bind_rows(
+    mc %>%
+      filter(Variable %in% c("ACRI_z", "CPU_z")) %>%
+      transmute(Horizon = "Monthly", Variable, Estimate = to_num(Coef), SE = to_num(SE_HAC)),
+    yk %>%
+      filter(Variable %in% c("ACRI_z", "CPU_z")) %>%
+      transmute(Horizon = "Yearly", Variable, Estimate = to_num(Coef), SE = to_num(SE))
+  ) %>%
+    mutate(
+      Lower = Estimate - 1.96 * SE,
+      Upper = Estimate + 1.96 * SE,
+      Horizon = factor(Horizon, levels = c("Monthly", "Yearly")),
+      Variable = factor(
+        Variable,
+        levels = c("ACRI_z", "CPU_z"),
+        labels = c("ACRI (physical risk)", "CPU (policy uncertainty)")
+      )
+    )
+
+  clim_labels <- clim_plot %>%
+    group_by(Variable) %>%
+    slice_tail(n = 1) %>%
+    ungroup() %>%
+    mutate(
+      Label = ifelse(Variable == "ACRI (physical risk)", "ACRI", "CPU"),
+      LabelY = Estimate + ifelse(Variable == "ACRI (physical risk)", 0.11, -0.12)
+    )
+
+  dodge <- position_dodge(width = 0.22)
+
+  p_horizon <- ggplot(clim_plot, aes(x = Horizon, y = Estimate, color = Variable, shape = Variable, group = Variable)) +
+    geom_hline(yintercept = 0, color = "#A8BCC9", linewidth = 0.5) +
+    geom_linerange(aes(ymin = Lower, ymax = Upper), linewidth = 0.9, alpha = 0.95, position = dodge) +
+    geom_line(linewidth = 0.75, alpha = 0.88, position = dodge) +
+    geom_point(size = pt_size, stroke = 0.35, position = dodge) +
+    geom_text(
+      data = clim_labels,
+      aes(x = Horizon, y = LabelY, label = Label, color = Variable, group = Variable),
+      position = dodge,
+      hjust = -0.08,
+      size = 2.65,
+      show.legend = FALSE,
+      fontface = "bold"
+    ) +
+    scale_color_manual(values = c(
+      "ACRI (physical risk)" = paper_palette[["Climate"]],
+      "CPU (policy uncertainty)" = paper_palette[["Yearly"]]
+    )) +
+    scale_shape_manual(values = c(
+      "ACRI (physical risk)" = 16,
+      "CPU (policy uncertainty)" = 17
+    )) +
+    scale_x_discrete(expand = expansion(mult = c(0.12, 0.28))) +
+    scale_y_continuous(labels = label_number(accuracy = 0.1), expand = expansion(mult = c(0.12, 0.16))) +
+    labs(x = NULL, y = "Coefficient", color = NULL, shape = NULL) +
+    paper_theme(base_size = 10) +
+    theme(legend.position = "none")
+
+  grid::grid.draw(compose_panels(p_monthly, p_horizon, labels = c("A", "B"), widths = c(1.05, 0.98)))
+}
+```
+
+Table \ref{tab:monthly-main} reports the monthly estimates. Rate and credit channels explain most variation in the green-minus-conventional return gap, consistent with H3. The 10-year Treasury change and IG OAS change have the largest coefficients, and both are significant. Figure \ref{fig:climate-evidence-panels} shows the same results in coefficient form. The climate terms still matter after strong macro controls. ACRI loads negatively and significantly ($\hat\beta = -0.110$, $p = 0.048$). Thus, the main market-level ACRI result is more consistent with the amplification branch than with a broad hedge interpretation. CPU is marginal at monthly frequency. Lagged ACRI terms at 1--3 months are not significant ($p = 0.150$, $0.571$, and $0.865$), which fits contemporaneous repricing more than slow predictive drift.
+
+### Yearly horizon check
+
+Panel B of Figure \ref{fig:climate-evidence-panels} shows the horizon shift. Monthly data pick up the physical-risk signal. Annual aggregation makes climate-policy uncertainty easier to see, while ACRI becomes only marginal. Because the annual model has only 11 observations, it is a low-power check. The point is not that yearly estimates are better. Rather, detectability depends on the climate variable's information clock. ACRI reflects realized physical conditions that can affect pricing within a rebalancing cycle. CPU reflects policy uncertainty that builds over longer lawmaking and rulemaking horizons. Appendix Table \ref{tab:app-yearly-frequency} reports the yearly coefficients for reference.
+
+## State dependence
+
+
+```{r krbn-main}
+if (nrow(krbn) > 0) {
+  keep <- krbn[krbn$Spec %in% c("Base", "RateHike_Interaction", "Full_Interactions") &
+                 krbn$Variable %in% c("r_KRBN", "KRBN_x_RateHike", "KRBN_x_PostIRA", "delta_10y", "VIX_z"),
+               c("Spec", "Variable", "Coef", "SE_robust", "t_stat", "p_value")]
+  keep$Spec <- factor(keep$Spec, levels = c("Base", "RateHike_Interaction", "Full_Interactions"))
+  keep <- keep[order(keep$Spec, keep$Variable), ]
+  keep$Regressor <- label_regressor(keep$Variable)
+  keep$p_value <- suppressWarnings(as.numeric(keep$p_value))
+  keep$Sig <- vapply(keep$p_value, star, character(1))
+  kt <- keep[, c("Regressor", "Coef", "SE_robust", "t_stat", "p_value", "Sig")]
+  names(kt) <- c("Regressor", "Coefficient", "Std. error (robust)", "t", "p-value", "Sig.")
+  n_base <- sum(keep$Spec == "Base")
+  n_rh <- sum(keep$Spec == "RateHike_Interaction")
+  n_full <- sum(keep$Spec == "Full_Interactions")
+  r1 <- 1L
+  r2 <- r1 + n_base - 1L
+  r3 <- r2 + 1L
+  r4 <- r2 + n_rh
+  r5 <- r4 + 1L
+  r6 <- nrow(kt)
+  paper_kbl(
+    kt,
+    font_size = 8,
+    digits = 4,
+    row.names = FALSE,
+    escape = TRUE,
+    caption = "Daily regressions of the green-minus-conventional return gap on KRBN (carbon ETF) returns with regime interactions. The three models are baseline, rate-hike interaction, and full model with post-IRA and rate-hike interactions. Huber--White robust standard errors. N = 1,618 trading days (2014--2024).",
+    label = "krbn-main"
+  ) %>%
+    pack_rows("Baseline specification", r1, r2) %>%
+    pack_rows("With rate-hike interactions", r3, r4) %>%
+    pack_rows("Full: post-IRA and rate-hike interactions", r5, r6) %>%
+    footnote(general = stars_note, general_title = "Notes: ", threeparttable = TRUE)
+}
+```
+
+```{r krbn-regime-plot, fig.cap="KRBN regime-interaction coefficients. The figure reports daily regression estimates for KRBN and its rate-hike and post-IRA interactions in the full model, with 95\\% robust confidence intervals.", fig.height=4.15, out.width="0.88\\linewidth", fig.pos="H"}
+if (nrow(krbn) > 0) {
+  full_terms <- krbn %>%
+    filter(Spec == "Full_Interactions", Variable %in% c("r_KRBN", "KRBN_x_RateHike", "KRBN_x_PostIRA")) %>%
+    transmute(
+      Term = factor(
+        case_when(
+          Variable == "r_KRBN" ~ "Baseline KRBN effect",
+          Variable == "KRBN_x_RateHike" ~ "Rate-hike increment",
+          Variable == "KRBN_x_PostIRA" ~ "Post-IRA increment",
+          TRUE ~ as.character(Variable)
+        ),
+        levels = c("Post-IRA increment", "Rate-hike increment", "Baseline KRBN effect")
+      ),
+      Estimate = to_num(Coef),
+      SE = to_num(SE_robust),
+      p_value = to_num(p_value),
+      Palette = case_when(
+        Variable == "r_KRBN" ~ "Baseline",
+        Variable == "KRBN_x_RateHike" ~ "RateHike",
+        Variable == "KRBN_x_PostIRA" ~ "PostIRA",
+        TRUE ~ "Baseline"
+      )
+    ) %>%
+    mutate(
+      Lower = Estimate - 1.96 * SE,
+      Upper = Estimate + 1.96 * SE,
+      Label = paste0(sprintf("%.3f", Estimate), vapply(p_value, star, character(1)))
+    )
+
+  x_span <- range(c(full_terms$Lower, full_terms$Upper), na.rm = TRUE)
+  x_pad <- max(diff(x_span) * 0.22, 0.003)
+  full_terms <- full_terms %>%
+    mutate(
+      LabelX = ifelse(Estimate >= 0, Upper + x_pad * 0.28, Lower - x_pad * 0.28),
+      LabelHjust = ifelse(Estimate >= 0, 0, 1)
+    )
+  x_lim <- range(c(x_span[1] - x_pad, x_span[2] + x_pad, full_terms$LabelX), na.rm = TRUE)
+  x_rng <- diff(x_lim)
+  if (!is.finite(x_rng) || x_rng < 1e-6) x_rng <- 0.02
+  x_lim <- x_lim + c(-1, 1) * x_rng * 0.06
+
+  ggplot(full_terms, aes(y = Term, x = Estimate, color = Palette, fill = Palette)) +
+    geom_vline(xintercept = 0, color = "#8EA6BC", linewidth = 0.48, linetype = "dashed") +
+    geom_pointrange(
+      aes(xmin = Lower, xmax = Upper),
+      linewidth = 0.95,
+      fatten = 6.2,
+      shape = 21,
+      stroke = 0.48
+    ) +
+    geom_label(
+      aes(x = LabelX, label = Label, hjust = LabelHjust),
+      size = 2.65,
+      show.legend = FALSE,
+      color = "#1A2F45",
+      fill = "white",
+      label.size = NA,
+      label.padding = grid::unit(0.12, "lines")
+    ) +
+    scale_color_manual(values = paper_palette[c("Baseline", "RateHike", "PostIRA")]) +
+    scale_fill_manual(values = paper_palette[c("Baseline", "RateHike", "PostIRA")]) +
+    scale_x_continuous(
+      labels = label_number(accuracy = 0.001),
+      limits = x_lim,
+      expand = expansion(mult = c(0, 0))
+    ) +
+    labs(x = "Coefficient (daily; robust SE)", y = NULL, color = NULL) +
+    paper_theme() +
+    theme(
+      legend.position = "none",
+      panel.grid.major.y = element_blank(),
+      axis.text.y = element_text(face = "bold", size = rel(0.96))
+    )
+}
+```
+
+Table \ref{tab:krbn-main} reports the daily regression ladder. Figure \ref{fig:krbn-regime-plot} then narrows the view to three coefficients from the full model. The baseline KRBN loading is negative. The rate-hike interaction makes it more negative ($p = 0.044$), while the post-IRA interaction offsets part of the baseline effect ($p = 0.040$). Carbon-transition sensitivity is not constant. It becomes more relevant when monetary policy tightens and moderates after major climate legislation.
+
+### Daily diagnostics within the state tests
+
+The daily diagnostics help because of what they do not show. At high frequency, rates, spreads, and equity volatility explain most variation in the green-minus-conventional gap. Climate signals are weak. Daily **VAR** systems confirm the same pattern: macro channels absorb most explained variance, while climate variables add little. This does not conflict with the main results. It is what the framework predicts if climate information is lower-frequency and partly anticipated. The Appendix reports impulse responses and variance decompositions.
+
+## Bond-level mechanism evidence
+
+Table \ref{tab:uop-nlp} shows that use-of-proceeds language varies across the six bonds in ways that map to **credibility** and **allocation precision**. The bond-level tests ask whether this variation also appears in **return gaps** (green minus LQD or an IG benchmark). A pure label story gives one prediction: specificity should not move with green-minus-LQD returns after macro controls. If investors value how informative the label is, more specific frameworks should price differently.
+
+The bond-level evidence is not meant to estimate population effects. With only six issuers, it is a mechanism check. The question is whether issuer patterns match the conditional return-gap story and help separate competing explanations for small literature-style greeniums, such as yield or OAS premia. The test is modest, but it is useful because it works closer to actual bonds.
+
+When the six bonds are stacked into monthly observations, the bond-month panel regression gives a significant CPU coefficient in the focal model (Appendix Table \ref{tab:app-bond-utility-cpu}). The dependent variable is the green-minus-IG-benchmark **return gap**, and the model includes macro controls. This is notable because CPU is only marginal in the pooled monthly market-level regression (Table \ref{tab:monthly-main}). Climate information can appear in bond-month data even when it is harder to see in the aggregate panel.
+
+### Credibility, first-observed-price drift, and exposure patterns
+
+Two mechanism stories link back to Appendix Table \ref{tab:uop-nlp}. The first is **signaling and framework precision**. If investors care only about the green label, use-of-proceeds specificity should not matter much. If they care about credible environmental allocation, more precise frameworks should price differently. The six-bond evidence is consistent with that idea, but it should be read as descriptive mechanism evidence. It uses benchmark-relative total returns versus LQD, not matched OAS spreads, and it does not support population-level cross-sectional inference.
+
+The second story is **dynamic repricing rather than static launch pricing**. If relative performance versus LQD were fixed from the first observed month, the green-minus-LQD return gap should not drift along an event clock. A difference-in-differences estimate compares months 1--6 to months 7+ for the six bonds. It shows about 44 bps per month of added compression in the later window ($p < 0.001$), after controls for rate, credit, and volatility channels (Appendix Table \ref{tab:app-did-6bond}). Month 1 is the **first month with non-missing Bloomberg prices** for each bond. The figure and regression should be read as early- versus later-window behavior in the available panel. This pattern is hard to square with a static return-gap story. It suggests learning, demand accumulation, or gradual incorporation after price history begins.
+
+
+Appendix Figure \ref{fig:first-observed-drift-plot} shows the same idea as the DiD table. The key question is whether the green-minus-LQD **return gap** steps down after month six on the **first-observed-price clock**.
+
+H4 receives mixed support: the adaptation-oriented Nature Conservancy bond has the highest specificity score in the case study, which is qualitatively consistent with the hedge branch, although its benchmark-relative return remains negative over the observed window. Hazard-exposed utility credits align more closely with the amplification branch.
+
+## Daily null results
+
+The null daily event studies sharpen the argument. If climate pricing came from a few headline announcements, prices should move around events such as COP summits, the Inflation Reduction Act, SEC disclosure rules, or Hurricane Ian. They do not. These windows are insignificant after multiple-testing correction. Rather than weakening the climate-pricing thesis, the result points to a slower process that appears in monthly and regime-conditioned models, not in narrow daily windows.
+
+# Discussion and Limitations
+
+The results imply that climate risk in green bonds is not absent. It is often hidden by designs that pool across horizons and regimes. In plain terms, climate risk may be mismeasured more than mispriced. Pooled estimates compress effects that work on different time scales and under different macro-policy states. What remains is a small average that masks conditional pricing.
+
+Standard rate and credit channels remain the main drivers of green bond returns, as expected for investment-grade fixed income. Climate variables add conditional information, but they do not replace the basic bond math. Physical risk loads at monthly frequency. Policy uncertainty appears after aggregation. Carbon-transition sensitivity rises during monetary tightening and falls after major legislation. A single pooled regression would miss these patterns, which is the main point of the paper.
+
+For ESG-oriented investors, a small unconditional greenium should not be read as evidence that climate information is irrelevant. The better question is narrower: when, and under what macro conditions, does climate information affect value? This paper points to monthly and longer horizons, monetary stress periods, and bonds with precise environmental frameworks. That answer is not perfect, but it is more useful than asking for one fixed premium.
+
+For policymakers and regulators, the results suggest that disclosure rules and climate-risk standards may affect prices at portfolio-rebalancing horizons more than through daily headline reactions. The null event-study evidence does not show that disclosure fails. It more likely shows that climate information is absorbed at a lower frequency.
+
+At the bond level, the signaling evidence suggests that the label alone does not explain **relative return performance** versus the benchmark. Investors appear to distinguish framework credibility. The return gap versus LQD also changes over the early price-history window instead of being fixed in the first observed month. The hedge-versus-amplify question remains open. Still, in this six-issuer sample, use of proceeds seems to matter: adaptation-oriented bonds look more hedge-like, while hazard-exposed operating credits can look amplification-like.
+
+## Limitations
+
+1. \textbf{Reduced-form identification.} The coefficients are conditional associations, not causal parameters. The design cannot rule out omitted shocks that move both climate proxies and green bond spreads.
+2. \textbf{KRBN endogeneity.} KRBN returns may move with broader risk shocks. The sample has no instrument for KRBN.
+3. \textbf{Coarse climate measurement.} ACRI and CPU are monthly and are forward-filled into daily panels. This can weaken high-frequency estimates, especially in the daily tests.
+4. \textbf{Bond-level sample ($N = 6$).} Issuer-level results are mechanism checks, not representative cross-sectional estimates.
+5. \textbf{No matched OAS design.} Return gaps versus LQD stand in for matched option-adjusted spreads that are not available. This can create benchmark mismatch.
+
+# Conclusion
+
+U.S. greeniums are small, while climate and policy channels can be larger. This paper argues that the tension becomes easier to reconcile once pricing is modeled by horizon, macro-policy state, and channel.
+
+Physical climate risk enters pricing contemporaneously at the monthly horizon; carbon-transition sensitivity strengthens during monetary tightening and weakens after major climate legislation; and the six-bond appendix exercises offer exploratory support for credibility and gradual repricing narratives rather than a static label premium.
+
+For investors, duration and credit exposure remain the main risk factors. Climate variables condition relative pricing in ways that pooled static models can miss. For regulators, disclosure and climate-policy design may matter most at portfolio-rebalancing horizons, not for daily headline traders. Future work should push in two directions: identify the carbon channel with an instrument, such as exogenous EU ETS allocation shocks, and expand the bond-level panel.
+
+Green bond climate pricing should be modeled as dynamic, not as one static premium. The small unconditional greenium is not the full story; it is just the average that shows up when the conditions are left out.
+
+\newpage
+
+# Appendix
+
+\small
+
+## Variable definitions
+
+Variables with a **\_z** suffix are standardized in the estimation sample. Return gaps are green-minus-conventional or green-minus-benchmark total-return differences. ACRI measures physical climate risk, CPU measures climate policy uncertainty, KRBN proxies carbon-transition sensitivity, and LQD is the bond-level investment-grade benchmark.
+
+## Yearly horizon check
+
+The yearly table appears here because the annual model is a low-power consistency check, not a main result.
+
+```{r app-yearly-frequency}
+if (nrow(yk) > 0) {
+  yk_show <- yk[!(yk$Variable %in% c("N", "R2_adj")), c("Variable", "Coef", "SE", "t_stat", "p_value")]
+  yk_show$Variable <- label_regressor(yk_show$Variable)
+  yk_show$p_value <- suppressWarnings(as.numeric(yk_show$p_value))
+  names(yk_show) <- c("Regressor", "Coefficient", "Std. error (OLS)", "t", "p-value")
+  paper_kbl(
+    yk_show,
+    font_size = 8,
+    digits = 4,
+    row.names = FALSE,
+    escape = TRUE,
+    caption = "Yearly climate regression (low-power check): same dependent variable as the monthly model, aggregated to annual frequency. Ordinary least squares (OLS) standard errors.",
+    label = "app-yearly-frequency"
+  ) %>%
+    footnote(
+      general = paste0(
+        "N = 11 annual observations. OLS standard errors and plain p-values are reported, but the small sample limits inference. This model is a low-power horizon check, not standalone evidence."
+      ),
+      general_title = "Notes: ",
+      threeparttable = TRUE
+    )
+}
+```
+
+
+## Six-bond Bloomberg case study
+
+The six-bond Bloomberg case study is exploratory mechanism evidence using benchmark-relative total returns versus LQD. It is not a matched OAS panel and not population-level cross-sectional inference. Descriptive tables report use-of-proceeds text, green specificity, and benchmark-relative total-return behavior for the six available bond histories.
+
+```{r uop-nlp}
+nlp <- read_tbl("nlp_uop_classification.csv")
+if (nrow(nlp) > 0) {
+  nlp_cols <- c("Issuer", "Sector", "UoP_Category", "Keyword_Density", "Green_Specificity")
+  if ("Ann_Return_Spread_pct" %in% names(nlp)) {
+    nlp_cols <- c(nlp_cols, "Ann_Return_Spread_pct")
+  }
+  nlp_show <- nlp[, nlp_cols, drop = FALSE]
+  nlp_show <- nlp_show[order(nlp_show$Sector, nlp_show$Issuer), ]
+  cn <- c(
+    "Issuer",
+    "Sector",
+    "Use of proceeds",
+    "Keyword density",
+    "Specificity score"
+  )
+  if ("Ann_Return_Spread_pct" %in% names(nlp_show)) {
+    cn <- c(cn, "Ann. return diff. vs. LQD (pct.)")
+  }
+  paper_kbl(
+    nlp_show,
+    row.names = FALSE,
+    digits = 3,
+    col.names = cn,
+    caption = paste0(
+      "Text-based classification of use of proceeds (UoP), green specificity, and annualized green-bond return relative to LQD (same window as the case-study price panel). ",
+      "Green specificity is a unitless score, roughly 0--1 in this sample. Higher values indicate clearer environmental allocation language in frameworks and second-party opinions. ",
+      "N = 6 bonds."
+    ),
+    label = "uop-nlp",
+    escape = TRUE
+  ) %>%
+    column_spec(1, width = "1.35in") %>%
+    column_spec(2, width = "0.95in") %>%
+    column_spec(3, width = "1.35in") %>%
+    column_spec(4:6, width = "0.82in") %>%
+    footnote(
+      general = paste0(
+        "Descriptive scores only; significance stars are not reported. ",
+        "Ann. return diff. vs. LQD is the annualized difference between the green bond total return and the iShares LQD ETF total return over the overlapping daily sample. It is a return gap, not an option-adjusted spread. The next table reports monthly moments, volatilities, and benchmark correlations for the same six bonds."
+      ),
+      general_title = "Notes: ", threeparttable = TRUE
+    )
+}
+```
+
+```{r bond-six-summary}
+bond_sum <- read_tbl("bond_expanded_summary.csv")
+if (nrow(bond_sum) > 0) {
+  tickmap <- data.frame(
+    Ticker = c("AppleGB", "JPMGB", "BACGB", "DukeEnergyGB", "NatureConservancyGB", "NYElecGasGB"),
+    Issuer = c("Apple Inc.", "JPMorgan Chase", "Bank of America", "Duke Energy", "Nature Conservancy", "NY Electric & Gas"),
+    Sector = c("Technology", "Financials", "Financials", "Utilities", "Non-Profit", "Utilities"),
+    stringsAsFactors = FALSE
+  )
+  bs <- merge(bond_sum, tickmap, by = "Ticker", all.x = TRUE)
+  bs <- bs[order(bs$Sector, bs$Issuer), ]
+  bs$Price_Range <- sprintf("%.2f to %.2f", to_num(bs$Min_Price), to_num(bs$Max_Price))
+  bs_show <- bs[, c(
+    "Issuer", "Sector", "N_months", "Ann_Return_pct", "Ann_Std_pct", "Sharpe",
+    "Corr_LQD", "Corr_BGRN", "Price_Range"
+  ), drop = FALSE]
+  paper_kbl(
+    bs_show,
+    row.names = FALSE,
+    digits = 2,
+    col.names = c(
+      "Issuer",
+      "Sector",
+      "N (months)",
+      "Ann. return (pct.)",
+      "Ann. SD (pct.)",
+      "Sharpe",
+      "Corr. LQD",
+      "Corr. BGRN",
+      "Price range"
+    ),
+    caption = paste0(
+      "Six-bond case study: monthly return and risk summary over each bond's available Bloomberg price history through ",
+      sample_end, ". Annual return and SD use monthly log returns (pct.). Sharpe equals monthly mean divided by SD and is not risk-free adjusted. Correlations use monthly returns vs. LQD and vs. the BGRN green-bond ETF."
+    ),
+    label = "bond-six-summary",
+    escape = TRUE
+  ) %>%
+    column_spec(1, width = "1.30in") %>%
+    column_spec(2, width = "0.88in") %>%
+    column_spec(3:8, width = "0.60in") %>%
+    column_spec(9, width = "1.05in") %>%
+    footnote(
+      general = "Price fields are clean levels from the case-study extract. The EUR-denominated Bank of America series is included as traded. Cross-issuer comparisons treat all six bonds as a mechanism sample, not a matched panel.",
+      general_title = "Notes: ",
+      threeparttable = TRUE
+    )
+}
+```
+
+```{r mechanism-profile-plot, fig.cap="Six-bond use-of-proceeds specificity and benchmark-relative returns. Panel A ranks issuer framework specificity; Panel B plots annualized green-minus-LQD return gaps against specificity for the six case-study bonds.", fig.height=4.45, out.width="0.90\\linewidth", fig.pos="H"}
+if (nrow(nlp) > 0 && all(c("Issuer", "Sector", "Green_Specificity", "Ann_Return_Spread_pct") %in% names(nlp))) {
+  mech_df <- nlp %>%
+    transmute(
+      Issuer = case_when(
+        Issuer == "Apple Inc." ~ "Apple",
+        TRUE ~ Issuer
+      ),
+      IssuerShort = case_when(
+        Issuer == "Nature Conservancy" ~ "Nature Cons.",
+        Issuer == "NY Electric & Gas" ~ "NY Elec & Gas",
+        Issuer == "Bank of America" ~ "Bank of Am.",
+        Issuer == "JPMorgan Chase" ~ "JPMorgan",
+        Issuer == "Duke Energy" ~ "Duke",
+        Issuer == "Apple Inc." ~ "Apple",
+        TRUE ~ Issuer
+      ),
+      Sector,
+      Green_Specificity = to_num(Green_Specificity),
+      Ann_Return_Spread_pct = to_num(Ann_Return_Spread_pct)
+    ) %>%
+    arrange(Green_Specificity)
+
+  sector_shapes <- c(
+    "Financials" = 16,
+    "Technology" = 17,
+    "Utilities" = 15,
+    "Non-Profit" = 18
+  )
+  sector_cols <- paper_palette[names(sector_shapes)]
+  median_specificity <- median(mech_df$Green_Specificity, na.rm = TRUE)
+  med_lab_x <- median_specificity + diff(range(mech_df$Green_Specificity, na.rm = TRUE)) * 0.06
+  med_lab_y <- mech_df$IssuerShort[which.max(mech_df$Green_Specificity)]
+
+  p_rank <- mech_df %>%
+    mutate(IssuerShort = factor(IssuerShort, levels = IssuerShort)) %>%
+    ggplot(aes(x = Green_Specificity, y = IssuerShort, color = Sector, shape = Sector)) +
+    geom_vline(xintercept = 0, color = "#D6E0E8", linewidth = 0.4) +
+    geom_vline(xintercept = median_specificity, linetype = "dashed", color = "#5E6F7E", linewidth = 0.55) +
+    geom_segment(aes(x = 0, xend = Green_Specificity, y = IssuerShort, yend = IssuerShort), linewidth = 1.05, alpha = 0.82, lineend = "round") +
+    geom_point(size = 3.1, stroke = 0.45, fill = "white") +
+    annotate(
+      "text",
+      x = med_lab_x,
+      y = med_lab_y,
+      label = "Median",
+      size = 2.5,
+      hjust = 0,
+      vjust = -0.35,
+      color = "#5E6F7E",
+      fontface = "italic"
+    ) +
+    scale_color_manual(values = sector_cols) +
+    scale_shape_manual(values = sector_shapes) +
+    scale_x_continuous(labels = label_number(accuracy = 0.01), expand = expansion(mult = c(0.10, 0.18))) +
+    labs(x = "Specificity score", y = NULL, color = "Sector", shape = "Sector") +
+    paper_theme(base_size = 10) +
+    theme(
+      legend.position = "none",
+      panel.grid.major.x = element_line(color = "#E4EBF0", linewidth = 0.28),
+      axis.text.y = element_text(face = "bold", size = rel(0.95))
+    )
+
+  label_df <- bind_rows(
+    mech_df %>% slice_max(Green_Specificity, n = 1, with_ties = FALSE),
+    mech_df %>% slice_min(Ann_Return_Spread_pct, n = 1, with_ties = FALSE),
+    mech_df %>% slice_max(Ann_Return_Spread_pct, n = 1, with_ties = FALSE)
+  ) %>%
+    distinct(Issuer, .keep_all = TRUE) %>%
+    mutate(
+      LabelX = Green_Specificity + ifelse(Green_Specificity > 0.85, -0.02, 0.02),
+      LabelH = ifelse(Green_Specificity > 0.85, 1, 0)
+    )
+
+  p_relation <- mech_df %>%
+    ggplot(aes(x = Green_Specificity, y = Ann_Return_Spread_pct, color = Sector, shape = Sector)) +
+    geom_hline(yintercept = 0, color = "#D6E0E8", linewidth = 0.4) +
+    geom_vline(xintercept = median_specificity, linetype = "dotted", color = "#B8C5D0", linewidth = 0.4) +
+    geom_smooth(
+      data = mech_df,
+      aes(x = Green_Specificity, y = Ann_Return_Spread_pct),
+      inherit.aes = FALSE,
+      method = "lm",
+      se = TRUE,
+      linewidth = 0.85,
+      alpha = 0.18,
+      color = "#0E2A47",
+      fill = "#1F6F8B"
+    ) +
+    geom_point(size = 3.1, stroke = 0.45, fill = "white") +
+    geom_text(
+      data = label_df,
+      aes(x = LabelX, label = IssuerShort, hjust = LabelH),
+      size = 2.55,
+      color = "#3D5266",
+      show.legend = FALSE
+    ) +
+    scale_color_manual(values = sector_cols) +
+    scale_shape_manual(values = sector_shapes) +
+    scale_x_continuous(
+      labels = label_number(accuracy = 0.01),
+      limits = c(min(mech_df$Green_Specificity, na.rm = TRUE) - 0.02, max(mech_df$Green_Specificity, na.rm = TRUE) + 0.24),
+      expand = expansion(mult = c(0.02, 0.02))
+    ) +
+    scale_y_continuous(labels = label_number(accuracy = 0.1), expand = expansion(mult = c(0.10, 0.12))) +
+    labs(x = "Specificity score", y = "Ann. return diff. vs. LQD (%)", color = "Sector", shape = "Sector") +
+    paper_theme() +
+    coord_cartesian(clip = "on") +
+    guides(
+      color = "none",
+      shape = guide_legend(
+        title = "Sector",
+        nrow = 2,
+        byrow = TRUE,
+        override.aes = list(color = "#2F4458", fill = "white", size = 3)
+      )
+    ) +
+    theme(
+      legend.position = "bottom",
+      panel.grid.major.x = element_line(color = "#E4EBF0", linewidth = 0.28),
+      panel.grid.major.y = element_line(color = "#E4EBF0", linewidth = 0.28),
+      legend.key.height = grid::unit(0.75, "lines"),
+      legend.text = element_text(size = rel(0.82)),
+      plot.margin = margin(5, 14, 8, 6)
+    )
+
+  grid::grid.draw(compose_panels(p_rank, p_relation, labels = c("A", "B"), widths = c(1, 1.05)))
+}
+```
+
+```{r first-observed-drift-plot, fig.cap="Six-bond first-observed-price clock. Event months start with the first non-missing Bloomberg price month for each bond. Thin lines show issuer green-minus-LQD monthly return gaps; the bold line is the cross-issuer mean with a 95\\% confidence band.", fig.height=3.9, out.width="0.88\\linewidth", fig.pos="H"}
+features_path <- file.path(ROOT, "data", "processed", "features.csv")
+case_panel <- read_tbl("bond_case_study_summary.csv")
+if (file.exists(features_path) && nrow(case_panel) > 0) {
+  px <- suppressWarnings(read.csv(features_path, stringsAsFactors = FALSE))
+  bond_cols <- c("AppleGB", "JPMGB", "BACGB", "DukeEnergyGB", "NYElecGasGB", "NatureConservancyGB")
+  needed <- c("Date", "LQD", bond_cols)
+
+  if (all(needed %in% names(px))) {
+    px <- px[, needed]
+    px$Date <- as.Date(px$Date)
+
+    month_end <- px %>%
+      mutate(Month = as.Date(cut(Date, "month"))) %>%
+      group_by(Month) %>%
+      summarise(
+        across(
+          .cols = all_of(c("LQD", bond_cols)),
+          .fns = ~ {
+            v <- .x[!is.na(.x)]
+            if (length(v) == 0) NA_real_ else v[length(v)]
+          }
+        ),
+        .groups = "drop"
+      ) %>%
+      arrange(Month)
+
+    monthly_ret <- month_end %>%
+      mutate(
+        across(
+          .cols = all_of(c("LQD", bond_cols)),
+          .fns = ~ 100 * (log(.x) - log(lag(.x))),
+          .names = "ret_{.col}"
+        )
+      )
+
+    drift_long <- monthly_ret %>%
+      select(Month, ret_LQD, all_of(paste0("ret_", bond_cols))) %>%
+      pivot_longer(
+        cols = all_of(paste0("ret_", bond_cols)),
+        names_to = "Series",
+        values_to = "BondRet"
+      ) %>%
+      mutate(
+        Ticker = sub("^ret_", "", Series),
+        Diff = BondRet - ret_LQD
+      ) %>%
+      filter(!is.na(Diff)) %>%
+      group_by(Ticker) %>%
+      arrange(Month, .by_group = TRUE) %>%
+      mutate(EventMonth = row_number()) %>%
+      ungroup() %>%
+      filter(EventMonth <= 18) %>%
+      mutate(Ticker = factor(Ticker, levels = bond_cols))
+
+    ticker_col <- setNames(cb_cat[seq_along(bond_cols)], bond_cols)
+    tick_labs <- c(
+      AppleGB = "Apple", JPMGB = "JPM", BACGB = "BofA",
+      DukeEnergyGB = "Duke", NYElecGasGB = "NY E&G", NatureConservancyGB = "Nat. Cons."
+    )
+
+    drift_mean <- drift_long %>%
+      group_by(EventMonth) %>%
+      summarise(
+        MeanDiff = mean(Diff, na.rm = TRUE),
+        SD = sd(Diff, na.rm = TRUE),
+        N = sum(!is.na(Diff)),
+        .groups = "drop"
+      ) %>%
+      mutate(
+        SE = ifelse(N > 1, SD / sqrt(N), NA_real_),
+        Lower = MeanDiff - 1.96 * SE,
+        Upper = MeanDiff + 1.96 * SE
+      )
+
+    pre_avg <- mean(drift_mean$MeanDiff[drift_mean$EventMonth <= 6], na.rm = TRUE)
+    post_avg <- mean(drift_mean$MeanDiff[drift_mean$EventMonth >= 7], na.rm = TRUE)
+
+    y_note <- max(drift_mean$MeanDiff, na.rm = TRUE)
+    if (!is.finite(y_note)) y_note <- 0
+
+    ggplot(drift_long, aes(x = EventMonth, y = Diff, group = Ticker, color = Ticker)) +
+      geom_hline(yintercept = 0, color = "#B8C8D4", linewidth = 0.42) +
+      geom_ribbon(
+        data = drift_mean,
+        aes(x = EventMonth, ymin = Lower, ymax = Upper, group = 1),
+        inherit.aes = FALSE,
+        fill = "#0E2A47",
+        alpha = 0.12
+      ) +
+      geom_line(alpha = 0.72, linewidth = 0.58) +
+      geom_point(alpha = 0.78, size = 0.95, stroke = 0) +
+      geom_line(
+        data = drift_mean,
+        aes(x = EventMonth, y = MeanDiff, group = 1),
+        inherit.aes = FALSE,
+        color = "#0E2A47",
+        linewidth = 1.2
+      ) +
+      geom_point(
+        data = drift_mean,
+        aes(x = EventMonth, y = MeanDiff),
+        inherit.aes = FALSE,
+        color = "#0E2A47",
+        size = 1.65
+      ) +
+      geom_segment(
+        aes(x = 1, xend = 6, y = pre_avg, yend = pre_avg),
+        inherit.aes = FALSE,
+        color = "#4A6478",
+        linewidth = 0.72,
+        linetype = "dashed"
+      ) +
+      geom_segment(
+        aes(x = 7, xend = 18, y = post_avg, yend = post_avg),
+        inherit.aes = FALSE,
+        color = "#4A6478",
+        linewidth = 0.72,
+        linetype = "dashed"
+      ) +
+      geom_vline(xintercept = 6.5, linetype = "dashed", color = "#6E7F90", linewidth = 0.48) +
+      annotate(
+        "text",
+        x = 6.72,
+        y = y_note,
+        label = "6-mo. DiD split",
+        hjust = 0,
+        vjust = -0.35,
+        size = 2.55,
+        color = "#3D5266",
+        fontface = "italic"
+      ) +
+      scale_color_manual(
+        values = ticker_col,
+        labels = tick_labs,
+        guide = guide_legend(
+          title = NULL,
+          nrow = 2,
+          byrow = TRUE,
+          override.aes = list(alpha = 1, linewidth = 0.9, size = 2.2)
+        )
+      ) +
+      scale_x_continuous(breaks = seq(1, 18, 3), expand = expansion(mult = c(0.02, 0.04))) +
+      labs(
+        x = "Months since first observed price month (= 1)",
+        y = "Green minus LQD return (p.p. / mo.)"
+      ) +
+      paper_theme(base_size = 10) +
+      theme(
+        panel.grid.major.x = element_line(color = "#E4EBF0", linewidth = 0.28),
+        legend.position = "bottom",
+        legend.margin = margin(2, 0, 0, 0)
+      )
+  }
+}
+```
+
+
+## Bond-level mechanism regressions
+
+### Bond-month panel: climate-policy specification
+
+Table \ref{tab:app-bond-utility-cpu} reports one stacked **bond-month** regression for the six case-study names. The dependent variable is green bond monthly return minus conventional IG benchmark monthly return, a **total-return gap** similar to the green-minus-LQD object in the case study. The model adds CPU, a utility-sector indicator, and their interaction. Standard errors are HC1 (heteroskedasticity-robust), matching the saved output.
+
+```{r app-bond-utility-cpu}
+uri <- read_tbl("utility_regime_interactions.csv")
+if (nrow(uri) > 0) {
+  vord <- c("delta_10y", "VIX_z", "CPU_z", "Is_Utility", "Util_x_CPU", "N", "R2_adj")
+  u <- uri %>% filter(Spec == "Climate_Policy", Variable %in% vord)
+  if (nrow(u) > 0) {
+    u$Variable <- factor(u$Variable, levels = vord)
+    u <- u %>% arrange(Variable)
+    u$Regressor <- vapply(as.character(u$Variable), function(v) {
+      switch(v,
+        delta_10y = "Change in 10-year Treasury yield",
+        VIX_z = "VIX (z-score)",
+        CPU_z = "CPU (z-score)",
+        Is_Utility = "Utility-sector dummy",
+        Util_x_CPU = "Utility $\\times$ CPU (z-score)",
+        N = "Observations",
+        R2_adj = "Adjusted $R^2$",
+        v
+      )
+    }, character(1))
+    u$p_num <- suppressWarnings(as.numeric(u$p_value))
+    u$Sig <- vapply(seq_len(nrow(u)), function(i) {
+      if (as.character(u$Variable[i]) %in% c("N", "R2_adj")) return("")
+      star(u$p_num[i])
+    }, character(1))
+    u <- u %>% mutate(
+      Coef_disp = case_when(
+        as.character(Variable) == "N" ~ as.character(round(as.numeric(Coef))),
+        TRUE ~ formatC(as.numeric(Coef), format = "f", digits = 4)
+      ),
+      SE_disp = ifelse(as.character(Variable) %in% c("N", "R2_adj"), "",
+        formatC(as.numeric(SE_robust), format = "f", digits = 4)
+      ),
+      t_disp = ifelse(as.character(Variable) %in% c("N", "R2_adj"), "",
+        formatC(as.numeric(t_stat), format = "f", digits = 3)
+      ),
+      p_disp = ifelse(as.character(Variable) %in% c("N", "R2_adj"), "",
+        formatC(as.numeric(p_value), format = "f", digits = 4)
+      )
+    )
+    u_show <- u[, c("Regressor", "Coef_disp", "SE_disp", "t_disp", "p_disp", "Sig")]
+    names(u_show) <- c("Regressor", "Coef.", "Robust SE", "$t$", "$p$", "Sig.")
+    paper_kbl(
+      u_show,
+      row.names = FALSE,
+      escape = FALSE,
+      caption = paste0(
+        "Bond-month panel (six issuers), climate-policy model. ",
+        "Dependent variable: green bond monthly return minus conventional IG benchmark monthly return (total-return gap). ",
+        "Huber--White HC1 standard errors. ",
+        stars_note
+      ),
+      label = "app-bond-utility-cpu"
+    ) %>%
+      footnote(
+        general = "Focal model for the bond-level mechanism discussion in Section 4. This is not the market-level monthly regression above. The utility-sector dummy equals one for the two utility names in the six-bond case study.",
+        general_title = "Notes: ",
+        threeparttable = TRUE
+      )
+  }
+}
+```
+
+### Early- versus later-window comparison
+
+The DiD regression uses monthly observations on the green-minus-LQD **return gap**. The post indicator compares months 7--18 to months 1--6 on a first-observed-price clock, where **month 1 is the first month with non-missing Bloomberg prices** for each bond, as in Figure \ref{fig:first-observed-drift-plot}. The coefficient on the later-window indicator is in percentage points per month, so multiplying by 100 gives the basis-point reading used in the main text.
+
+```{r app-did-6bond}
+did6 <- read_tbl("did_real_6bond.csv")
+if (nrow(did6) > 0) {
+  d <- did6
+  names(d) <- c("Variable", "Coef", "SE_robust", "t_stat", "p_value")[seq_len(ncol(d))]
+  d$p_value <- suppressWarnings(as.numeric(d$p_value))
+  d$Sig <- vapply(d$p_value, star, character(1))
+  coef_rows <- d$Variable %in% c("const", "Post_6mo", "delta_10y", "delta_IG_OAS", "VIX_z")
+  d_show <- d[coef_rows, c("Variable", "Coef", "SE_robust", "t_stat", "p_value", "Sig")]
+  d_show$Variable <- label_regressor(d_show$Variable)
+  d_show$p_value <- ifelse(is.na(d_show$p_value), "", formatC(d_show$p_value, format = "f", digits = 4))
+  d_show$Coef <- formatC(d_show$Coef, format = "f", digits = 3)
+  d_show$SE_robust <- formatC(d_show$SE_robust, format = "f", digits = 3)
+  d_show$t_stat <- formatC(d_show$t_stat, format = "f", digits = 3)
+  names(d_show) <- c("Variable", "Coef.", "Robust SE", "$t$", "$p$", "Sig.")
+  n_obs <- d$Coef[d$Variable == "N"]
+  r2a <- d$Coef[d$Variable == "R2_adj"]
+  cap <- paste0(
+    "Bond-level early- versus later-window comparison (six issuers). ",
+    "Dependent variable: green bond return minus LQD, monthly. ",
+    "Robust standard errors. ",
+    if (length(n_obs) == 1) paste0("$N = ", format(round(as.numeric(n_obs[1]))), "$") else "",
+    if (length(r2a) == 1) paste0(", adjusted $R^2 = ", formatC(as.numeric(r2a[1]), format = "f", digits = 3), "$") else "",
+    ". ", stars_note
+  )
+  paper_kbl(
+    d_show,
+    row.names = FALSE,
+    escape = FALSE,
+    caption = cap,
+    label = "app-did-6bond"
+  ) %>%
+    footnote(
+      general = paste0(
+        "The post indicator compares months 7--18 to months 1--6 on a clock anchored at the first non-missing Bloomberg price for each bond, not at issuance. ",
+        "With only six underlying bond units, p-values primarily indicate direction and within-sample precision rather than population-level inference, even though the regression contains monthly observations."
+      ),
+      general_title = "Notes: ",
+      threeparttable = TRUE
+    )
+}
+```
+
+
+## Daily VAR diagnostics
+
+The figures below summarize the daily VAR outputs described in the main text, replotted in R for print legibility. An **impulse response function (IRF)** traces how one variable moves over days after a one-standard-deviation shock to another variable. A **forecast error variance decomposition (FEVD)** reports how much of each variable's forecast error variance comes from each shock. **System 3** uses the green-minus-conventional return gap and climate-related series. **System 4** uses a **rate-hedged** version of that gap.
+
+```{r var-irf-compact, fig.cap="Daily VAR impulse responses. Each panel reports the response of the target series to one shock over trading days, with bootstrap 95\\% confidence bands.", fig.height=4.2, out.width="0.88\\linewidth", fig.pos="H"}
+build_irf_df <- function(sys_obj, sys_name, keep_impulses, horizon_max = 12) {
+  if (is.null(sys_obj) || is.null(sys_obj$irf_list)) return(data.frame())
+  all_names <- names(sys_obj$irf_list)
+  keep <- intersect(keep_impulses, all_names)
+  if (length(keep) == 0) return(data.frame())
+
+  bind_rows(lapply(keep, function(imp) {
+    obj <- sys_obj$irf_list[[imp]]
+    irf_mat <- obj$irf[[1]]
+    low_mat <- obj$Lower[[1]]
+    up_mat <- obj$Upper[[1]]
+    h <- seq_len(nrow(irf_mat)) - 1L
+    data.frame(
+      System = sys_name,
+      Impulse = imp,
+      Horizon = h,
+      IRF = as.numeric(irf_mat[, 1]),
+      Lower = as.numeric(low_mat[, 1]),
+      Upper = as.numeric(up_mat[, 1]),
+      stringsAsFactors = FALSE
+    )
+  })) %>%
+    filter(Horizon <= horizon_max)
+}
+
+irf_df <- bind_rows(
+  build_irf_df(var_sys3, "System 3: green-conventional differential", c("r_KRBN", "delta_10y", "VIX_z"), horizon_max = 12),
+  build_irf_df(var_sys4, "System 4: rate-hedged differential", c("r_KRBN", "delta_IG_OAS", "VIX_z"), horizon_max = 12)
+)
+
+if (nrow(irf_df) > 0) {
+  impulse_labs <- c(
+    r_KRBN = "KRBN shock",
+    delta_10y = "10Y shock",
+    delta_IG_OAS = "IG OAS shock",
+    VIX_z = "VIX shock"
+  )
+  irf_df <- irf_df %>%
+    mutate(
+      SystemShort = ifelse(grepl("^System 3", System), "S3", "S4"),
+      ShockLabel = dplyr::recode(Impulse, !!!impulse_labs, .default = Impulse),
+      Panel = factor(
+        paste0(SystemShort, ": ", ShockLabel),
+        levels = c(
+          "S3: KRBN shock", "S3: 10Y shock", "S3: VIX shock",
+          "S4: KRBN shock", "S4: IG OAS shock", "S4: VIX shock"
+        )
+      )
+    )
+
+  ggplot(irf_df, aes(x = Horizon, y = IRF)) +
+    geom_hline(yintercept = 0, color = "#B8C5D2", linewidth = 0.42) +
+    geom_ribbon(aes(ymin = Lower, ymax = Upper), fill = "#56B4E9", alpha = 0.22) +
+    geom_line(color = "#0E2A47", linewidth = 0.78, lineend = "round") +
+    facet_wrap(~ Panel, ncol = 3, scales = "free_y") +
+    scale_x_continuous(breaks = seq(0, 12, 3), expand = expansion(mult = c(0.02, 0.03))) +
+    labs(x = "Horizon (trading days)", y = "Response") +
+    paper_theme(base_size = 9.4) +
+    theme(
+      panel.grid.major.x = element_line(color = "#E4EBF0", linewidth = 0.26),
+      strip.background = element_rect(fill = "#F4F7FA", color = "#C5D3DE", linewidth = 0.32),
+      strip.text = element_text(size = rel(0.88), face = "bold"),
+      legend.position = "none",
+      panel.spacing = grid::unit(0.55, "lines")
+    )
+}
+```
+
+```{r var-fevd-compact, fig.cap="Daily VAR forecast-error variance decompositions. Lines report the share of forecast-error variance explained by the largest non-own shocks by trading-day horizon.", fig.height=3.55, out.width="0.88\\linewidth", fig.pos="H"}
+build_fevd_df <- function(sys_obj, sys_name, top_n = 3, horizon_max = 12) {
+  if (is.null(sys_obj) || is.null(sys_obj$fevd_target)) return(data.frame())
+  ft <- as.data.frame(sys_obj$fevd_target)
+  if (!("Horizon" %in% names(ft))) return(data.frame())
+  target <- names(ft)[1]
+
+  long <- ft %>%
+    filter(Horizon <= horizon_max) %>%
+    pivot_longer(cols = -Horizon, names_to = "Shock", values_to = "Contribution")
+
+  h_end <- max(long$Horizon, na.rm = TRUE)
+  top_shocks <- long %>%
+    filter(Horizon == h_end, Shock != target) %>%
+    arrange(desc(Contribution)) %>%
+    slice_head(n = top_n) %>%
+    pull(Shock)
+
+  long %>%
+    filter(Shock %in% top_shocks) %>%
+    mutate(System = sys_name, Target = target)
+}
+
+fevd_df <- bind_rows(
+  build_fevd_df(var_sys3, "System 3 target: differential", top_n = 3, horizon_max = 12),
+  build_fevd_df(var_sys4, "System 4 target: hedged differential", top_n = 3, horizon_max = 12)
+)
+
+if (nrow(fevd_df) > 0) {
+  shock_labs <- c(
+    r_KRBN = "KRBN",
+    r_SPY = "S&P 500",
+    delta_10y = "10Y Treasury",
+    delta_IG_OAS = "IG OAS",
+    VIX_z = "VIX (z)",
+    r_USO = "Oil (USO)"
+  )
+
+  fevd_df <- fevd_df %>%
+    mutate(ShockLabel = dplyr::recode(Shock, !!!shock_labs, .default = Shock))
+  fevd_end <- fevd_df %>%
+    group_by(System, ShockLabel) %>%
+    filter(Horizon == max(Horizon)) %>%
+    ungroup()
+
+  shock_levels <- sort(unique(as.character(fevd_df$ShockLabel)))
+  fevd_colors <- cb_cat[seq_along(shock_levels)]
+  names(fevd_colors) <- shock_levels
+
+  ggplot(fevd_df, aes(x = Horizon, y = Contribution, color = ShockLabel)) +
+    geom_line(linewidth = 0.88, lineend = "round") +
+    geom_point(data = fevd_end, size = 1.85, stroke = 0.25, fill = "white", shape = 21, show.legend = FALSE) +
+    geom_text(
+      data = fevd_end,
+      aes(label = ShockLabel, color = ShockLabel),
+      hjust = 0,
+      nudge_x = 0.22,
+      size = 2.45,
+      show.legend = FALSE,
+      fontface = "bold"
+    ) +
+    facet_wrap(~ System, ncol = 2, scales = "free_y") +
+    scale_x_continuous(breaks = seq(1, 12, 2), limits = c(1, 14.6), expand = expansion(mult = c(0.01, 0.02))) +
+    scale_y_continuous(labels = label_number(accuracy = 0.1)) +
+    scale_color_manual(values = fevd_colors) +
+    labs(x = "Horizon (trading days)", y = "Variance share (%)") +
+    paper_theme(base_size = 9.4) +
+    theme(
+      legend.position = "none",
+      panel.grid.major.x = element_line(color = "#E4EBF0", linewidth = 0.26),
+      strip.background = element_rect(fill = "#F4F7FA", color = "#C5D3DE", linewidth = 0.32),
+      strip.text = element_text(face = "bold", size = rel(0.9)),
+      panel.spacing = grid::unit(0.65, "lines")
+    )
+}
+```
+
+```{=latex}
+\clearpage
+```
+
+# References
