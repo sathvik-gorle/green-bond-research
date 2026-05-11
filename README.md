@@ -1,6 +1,4 @@
-# Green bond research reproduction
-
-Everything needed to rebuild the empirical outputs and manuscript lives in this directory: data, code, exported tables and figures, and document sources.
+# about
 
 ## Layout
 
