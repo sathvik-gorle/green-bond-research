@@ -5,6 +5,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import math
+
 import pandas as pd
 import yaml
 
@@ -96,6 +98,15 @@ def main() -> None:
                 extremes = (s.abs() > 500).mean()
                 if extremes > 0.01:
                     fail(f"{col}: >1% observations with |return| > 500 (check units)")
+
+    if "ACRI" in df_full.columns:
+        s = pd.to_numeric(df_full["ACRI"], errors="coerce").dropna()
+        if len(s):
+            lev_med = float(s.abs().median())
+            if math.isfinite(lev_med) and lev_med > 1e10:
+                fail(
+                    "ACRI median |level| is absurdly large; rebuild features with fixed load_acri (ACRI_loss fallback)"
+                )
 
     exp_tables = REPO_ROOT / "data/exports/tables"
     exp_figs = REPO_ROOT / "data/exports/figures"

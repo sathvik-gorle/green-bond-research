@@ -7,7 +7,7 @@
 | `manuscript/` | `researchpaperfinal.pdf`, LaTeX source, and figure PDFs used by the manuscript |
 | `sources/` | R Markdown used to weave narrative, tables, and figures |
 | `paper/` | Supporting materials for Rmd (e.g. `references.bib`) |
-| `data/raw/` | Inputs for constructing `features.csv` |
+| `data/raw/` | Inputs for `features.csv`; **ACRI modeling** uses **`ACRI_loss`** (Climate Risk Loss index) for `ACRI`/`ACRI_z`; **`ACRI_scaled`** in `acri_*.csv` is archival-only (mis-scaled composite export) |
 | `data/processed/` | Processed panel (`features.csv`) and `.RData` objects from volatility models |
 | `data/exports/tables/` | Regression and diagnostic tables (CSV) |
 | `data/exports/figures/` | VAR / GARCH / case-study figures (PDF) |
@@ -69,13 +69,15 @@ pdflatex -interaction=nonstopmode Final_Paper_Submission_Final.tex
 
 ## Check file integrity
 
-Regenerate the manifest (excludes `.git/`, this file, and `code/logs/`):
+Regenerate the manifest (excludes `.git/`, this file, `code/logs/`, `__pycache__/`, and `.pyc`):
 
 ```bash
 find . -type f \
   -not -path "./.git/*" \
   -not -path "./MANIFEST.sha256" \
   -not -path "./code/logs/*" \
+  -not -path "*/__pycache__/*" \
+  -not -name "*.pyc" \
   -exec shasum -a 256 {} \; > MANIFEST.sha256
 ```
 

@@ -133,8 +133,40 @@ def load_disasters(raw_dir: Path) -> pd.DataFrame:
     return df
 
 
+def _finalize_acri_physical_risk(acri_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Physical risk in the paper enters as ``ACRI_z`` from the **Climate Risk Loss** index
+    (``ACRI_loss``) whenever present. Mis-scaled composite exports remain only in raw CSVs
+    under ``ACRI_scaled`` and are not merged into ``features``.
+    """
+    if acri_df.empty:
+        return acri_df
+    out = acri_df.copy()
+    if "ACRI_scaled" in out.columns:
+        out = out.drop(columns=["ACRI_scaled"])
+    if "ACRI_loss" in out.columns and out["ACRI_loss"].notna().any():
+        out["ACRI"] = out["ACRI_loss"]
+        logger.info(
+            "ACRI level for modeling = ACRI_loss (Climate Risk Loss Index); "
+            "mis-scaled composite is not passed into the feature panel."
+        )
+    return out
+
+
+def _acri_csv_to_frame(df: pd.DataFrame) -> pd.DataFrame:
+    """Parse Date + optional ACRI_loss / ACRI_scaled / legacy ACRI from a raw extract."""
+    out = pd.DataFrame(index=df.index)
+    if "ACRI_loss" in df.columns:
+        out["ACRI_loss"] = pd.to_numeric(df["ACRI_loss"], errors="coerce")
+    if "ACRI_scaled" in df.columns:
+        out["ACRI_scaled"] = pd.to_numeric(df["ACRI_scaled"], errors="coerce")
+    elif "ACRI" in df.columns:
+        out["ACRI_scaled"] = pd.to_numeric(df["ACRI"], errors="coerce")
+    return _finalize_acri_physical_risk(out)
+
+
 def load_acri(downloads: Path) -> pd.DataFrame:
-    """Load Actuaries Climate Risk Index from packaged CSV or source workbook."""
+    """Load ACRI-monthly aggregates from packaged CSV under ``downloads`` or the source workbook."""
     daily_csv_path = downloads / "acri_daily.csv"
     if daily_csv_path.exists():
         df = pd.read_csv(daily_csv_path)
@@ -142,11 +174,7 @@ def load_acri(downloads: Path) -> pd.DataFrame:
             return pd.DataFrame()
         df["date"] = pd.to_datetime(df["Date"])
         df = df.set_index("date").sort_index()
-        out = pd.DataFrame(index=df.index)
-        for col in ["ACRI", "ACRI_loss"]:
-            if col in df.columns:
-                out[col] = pd.to_numeric(df[col], errors="coerce")
-        return out
+        return _acri_csv_to_frame(df)
 
     csv_path = downloads / "acri_monthly.csv"
     if csv_path.exists():
@@ -155,11 +183,7 @@ def load_acri(downloads: Path) -> pd.DataFrame:
             return pd.DataFrame()
         df["date"] = pd.to_datetime(df["Date"])
         df = df.set_index("date").sort_index()
-        out = pd.DataFrame(index=df.index)
-        for col in ["ACRI", "ACRI_loss"]:
-            if col in df.columns:
-                out[col] = pd.to_numeric(df[col], errors="coerce")
-        return out
+        return _acri_csv_to_frame(df)
 
     for name in ["CLIMATE RISK.xlsx", "CLIMATE RISK (1).xlsx"]:
         p = downloads / name
@@ -183,7 +207,7 @@ def load_acri(downloads: Path) -> pd.DataFrame:
         out["ACRI"] = pd.to_numeric(df["ACRI"], errors="coerce")
     if "Climate Risk Loss Index" in df.columns:
         out["ACRI_loss"] = pd.to_numeric(df["Climate Risk Loss Index"], errors="coerce")
-    return out
+    return _finalize_acri_physical_risk(out)
 
 
 def load_individual_bonds(long_csv_path: Path) -> pd.DataFrame:
