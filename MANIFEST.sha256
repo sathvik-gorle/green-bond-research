@@ -1,3 +1,4 @@
+5c8c62dc0649fd17bc71c15efe26bde4535d187ffab94c6e1c058d5ccb0644f4  ./.gitignore
 d1d7453794c9862a8c772ac466cf3b6756bfc26ad2d46bc61a08c5a34c697e62  ./README.md
 c05f494e220f4fbb1320f7a806bcaed4b9211cffacffb11469b978407703c723  ./code/configs/config.yaml
 e27de513201f8a1b1c904787db996a6280f24dcfbd462f3f1cd54640b888e00d  ./code/garch_models.R
