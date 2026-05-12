@@ -5,4 +5,3 @@ cd "$ROOT"
 
 python3 -m pip install -r code/requirements.txt
 python3 code/replication.py --stage full
-Rscript code/garch_models.R

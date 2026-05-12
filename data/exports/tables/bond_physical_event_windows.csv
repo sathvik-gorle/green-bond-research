@@ -1,0 +1,43 @@
+Event,Date,Type,Cost_Bn,Bond,Is_Utility,Directly_Affected,CAR_3mo_pct,Bench_CAR_pct,Excess_CAR_pct
+Hurricane Dorian,2019-09-05,Hurricane,1.6,Apple Inc.,False,False,,,
+Hurricane Dorian,2019-09-05,Hurricane,1.6,JPMorgan Chase,False,False,,,
+Hurricane Dorian,2019-09-05,Hurricane,1.6,Duke Energy,True,True,,,
+Hurricane Dorian,2019-09-05,Hurricane,1.6,Nature Conservancy,False,True,,,
+Hurricane Dorian,2019-09-05,Hurricane,1.6,NY Electric & Gas,True,False,,,
+Hurricane Dorian,2019-09-05,Hurricane,1.6,Bank of America,False,True,,,
+Hurricane Isaias,2020-08-03,Hurricane,4.8,Apple Inc.,False,False,,,
+Hurricane Isaias,2020-08-03,Hurricane,4.8,JPMorgan Chase,False,True,,,
+Hurricane Isaias,2020-08-03,Hurricane,4.8,Duke Energy,True,True,,,
+Hurricane Isaias,2020-08-03,Hurricane,4.8,Nature Conservancy,False,False,,,
+Hurricane Isaias,2020-08-03,Hurricane,4.8,NY Electric & Gas,True,True,,,
+Hurricane Isaias,2020-08-03,Hurricane,4.8,Bank of America,False,True,,,
+Winter Storm Uri,2021-02-15,Winter Storm,24.0,Apple Inc.,False,False,,,
+Winter Storm Uri,2021-02-15,Winter Storm,24.0,JPMorgan Chase,False,True,,,
+Winter Storm Uri,2021-02-15,Winter Storm,24.0,Duke Energy,True,True,,,
+Winter Storm Uri,2021-02-15,Winter Storm,24.0,Nature Conservancy,False,False,,,
+Winter Storm Uri,2021-02-15,Winter Storm,24.0,NY Electric & Gas,True,True,,,
+Winter Storm Uri,2021-02-15,Winter Storm,24.0,Bank of America,False,True,,,
+Hurricane Ida,2021-08-29,Hurricane,80.3,Apple Inc.,False,False,,,
+Hurricane Ida,2021-08-29,Hurricane,80.3,JPMorgan Chase,False,True,,,
+Hurricane Ida,2021-08-29,Hurricane,80.3,Duke Energy,True,False,,,
+Hurricane Ida,2021-08-29,Hurricane,80.3,Nature Conservancy,False,False,,,
+Hurricane Ida,2021-08-29,Hurricane,80.3,NY Electric & Gas,True,True,,,
+Hurricane Ida,2021-08-29,Hurricane,80.3,Bank of America,False,False,,,
+Hurricane Ian,2022-09-28,Hurricane,116.0,Apple Inc.,False,False,,,
+Hurricane Ian,2022-09-28,Hurricane,116.0,JPMorgan Chase,False,False,,,
+Hurricane Ian,2022-09-28,Hurricane,116.0,Duke Energy,True,True,,,
+Hurricane Ian,2022-09-28,Hurricane,116.0,Nature Conservancy,False,False,,,
+Hurricane Ian,2022-09-28,Hurricane,116.0,NY Electric & Gas,True,False,,,
+Hurricane Ian,2022-09-28,Hurricane,116.0,Bank of America,False,True,,,
+Winter Storm Elliott,2022-12-22,Winter Storm,6.0,Apple Inc.,False,False,,,
+Winter Storm Elliott,2022-12-22,Winter Storm,6.0,JPMorgan Chase,False,True,,,
+Winter Storm Elliott,2022-12-22,Winter Storm,6.0,Duke Energy,True,True,,,
+Winter Storm Elliott,2022-12-22,Winter Storm,6.0,Nature Conservancy,False,True,,,
+Winter Storm Elliott,2022-12-22,Winter Storm,6.0,NY Electric & Gas,True,True,,,
+Winter Storm Elliott,2022-12-22,Winter Storm,6.0,Bank of America,False,True,,,
+Hurricane Helene,2024-09-27,Hurricane,78.7,Apple Inc.,False,False,0.953,41.464,-40.511
+Hurricane Helene,2024-09-27,Hurricane,78.7,JPMorgan Chase,False,False,-0.115,41.464,-41.579
+Hurricane Helene,2024-09-27,Hurricane,78.7,Duke Energy,True,True,1.55,41.464,-39.914
+Hurricane Helene,2024-09-27,Hurricane,78.7,Nature Conservancy,False,True,0.0,41.464,-41.464
+Hurricane Helene,2024-09-27,Hurricane,78.7,NY Electric & Gas,True,False,-2.622,41.464,-44.086
+Hurricane Helene,2024-09-27,Hurricane,78.7,Bank of America,False,True,0.251,41.464,-41.212

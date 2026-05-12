@@ -5,7 +5,7 @@
 | Path | Purpose |
 |------|---------|
 | `manuscript/` | `researchpaperfinal.pdf`, LaTeX source, and figure PDFs used by the manuscript |
-| `sources/` | R Markdown used to weave narrative, tables, and figures |
+| `sources/researchpaper.Rmd` | R Markdown used to weave narrative, tables, and figures |
 | `paper/` | Supporting materials for Rmd (e.g. `references.bib`) |
 | `data/raw/` | Inputs for `features.csv`; **ACRI modeling** uses **`ACRI_loss`** (Climate Risk Loss index) for `ACRI`/`ACRI_z`; **`ACRI_scaled`** in `acri_*.csv` is archival-only (mis-scaled composite export) |
 | `data/processed/` | Processed panel (`features.csv`) and `.RData` objects from volatility models |
@@ -40,7 +40,7 @@ From the repository root (`greenbondfinalfolder/`):
 bash scripts/reproduce.sh
 ```
 
-This installs Python deps, runs `python3 code/replication.py --stage full`, then `Rscript code/garch_models.R`. The Python `full` stage already invokes GARCH once; the final Rscript re-runs it so CSV/PDF totals always match standalone R outputs.
+This installs Python deps and runs `python3 code/replication.py --stage full`. The Python `full` stage invokes the R GARCH script as part of the run.
 
 (Optional) Validate inputs **after** building `features.csv` (fail-fast on empty or corrupt panel):
 

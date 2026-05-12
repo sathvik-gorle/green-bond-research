@@ -1,0 +1,43 @@
+Event,Date,Bond,State,Directly_Affected
+Hurricane Dorian,2019-09-05,DukeEnergyGB,NC,True
+Hurricane Dorian,2019-09-05,NYElecGasGB,NY,False
+Hurricane Dorian,2019-09-05,AppleGB,CA,False
+Hurricane Dorian,2019-09-05,JPMGB,NY,False
+Hurricane Dorian,2019-09-05,NatureConservancyGB,VA,True
+Hurricane Dorian,2019-09-05,BACGB,NC,True
+Hurricane Isaias,2020-08-03,DukeEnergyGB,NC,True
+Hurricane Isaias,2020-08-03,NYElecGasGB,NY,True
+Hurricane Isaias,2020-08-03,AppleGB,CA,False
+Hurricane Isaias,2020-08-03,JPMGB,NY,True
+Hurricane Isaias,2020-08-03,NatureConservancyGB,VA,False
+Hurricane Isaias,2020-08-03,BACGB,NC,True
+Winter Storm Uri,2021-02-15,DukeEnergyGB,NC,True
+Winter Storm Uri,2021-02-15,NYElecGasGB,NY,True
+Winter Storm Uri,2021-02-15,AppleGB,CA,False
+Winter Storm Uri,2021-02-15,JPMGB,NY,True
+Winter Storm Uri,2021-02-15,NatureConservancyGB,VA,False
+Winter Storm Uri,2021-02-15,BACGB,NC,True
+Hurricane Ida,2021-08-29,DukeEnergyGB,NC,False
+Hurricane Ida,2021-08-29,NYElecGasGB,NY,True
+Hurricane Ida,2021-08-29,AppleGB,CA,False
+Hurricane Ida,2021-08-29,JPMGB,NY,True
+Hurricane Ida,2021-08-29,NatureConservancyGB,VA,False
+Hurricane Ida,2021-08-29,BACGB,NC,False
+Hurricane Ian,2022-09-28,DukeEnergyGB,NC,True
+Hurricane Ian,2022-09-28,NYElecGasGB,NY,False
+Hurricane Ian,2022-09-28,AppleGB,CA,False
+Hurricane Ian,2022-09-28,JPMGB,NY,False
+Hurricane Ian,2022-09-28,NatureConservancyGB,VA,False
+Hurricane Ian,2022-09-28,BACGB,NC,True
+Winter Storm Elliott,2022-12-22,DukeEnergyGB,NC,True
+Winter Storm Elliott,2022-12-22,NYElecGasGB,NY,True
+Winter Storm Elliott,2022-12-22,AppleGB,CA,False
+Winter Storm Elliott,2022-12-22,JPMGB,NY,True
+Winter Storm Elliott,2022-12-22,NatureConservancyGB,VA,True
+Winter Storm Elliott,2022-12-22,BACGB,NC,True
+Hurricane Helene,2024-09-27,DukeEnergyGB,NC,True
+Hurricane Helene,2024-09-27,NYElecGasGB,NY,False
+Hurricane Helene,2024-09-27,AppleGB,CA,False
+Hurricane Helene,2024-09-27,JPMGB,NY,False
+Hurricane Helene,2024-09-27,NatureConservancyGB,VA,True
+Hurricane Helene,2024-09-27,BACGB,NC,True

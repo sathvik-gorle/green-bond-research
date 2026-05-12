@@ -1,0 +1,8 @@
+Event,Date,Type,Affected_States,Cost_Billion,Source
+Hurricane Dorian,2019-09-05,Hurricane,"NC,SC,VA",1.6,NOAA NCEI Billion-Dollar Disasters
+Hurricane Isaias,2020-08-03,Hurricane,"NC,SC,NY,NJ",4.8,NOAA NCEI Billion-Dollar Disasters
+Winter Storm Uri,2021-02-15,Winter Storm,"TX,NC,SC,NY",24.0,NOAA NCEI Billion-Dollar Disasters
+Hurricane Ida,2021-08-29,Hurricane,"LA,MS,NJ,NY,PA",80.3,NOAA NCEI Billion-Dollar Disasters
+Hurricane Ian,2022-09-28,Hurricane,"FL,SC,NC",116.0,NOAA NCEI Billion-Dollar Disasters
+Winter Storm Elliott,2022-12-22,Winter Storm,"NY,NC,SC,VA,PA",6.0,NOAA NCEI Billion-Dollar Disasters
+Hurricane Helene,2024-09-27,Hurricane,"FL,GA,NC,SC,TN,VA",78.7,NOAA NCEI Billion-Dollar Disasters

@@ -1,0 +1,7 @@
+Cause,Effect,F_stat,p_value,Significant_5pct,Lag
+CPU_z,r_green_corp,0.419,0.5178,False,1
+ACRI_z,r_green_corp,0.63,0.4276,False,1
+VIX_z,r_green_corp,0.103,0.7479,False,1
+delta_10y,r_green_corp,0.228,0.6335,False,1
+CPU_z,r_conv_corp,0.183,0.6689,False,1
+ACRI_z,r_conv_corp,0.002,0.9668,False,1

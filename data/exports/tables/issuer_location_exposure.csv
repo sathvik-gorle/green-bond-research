@@ -1,0 +1,7 @@
+Issuer,State,County,FIPS,Exposure_Category,Is_Utility,Notes
+Apple Inc.,CA,Santa Clara,06085,low,False,"Cupertino, CA — low hurricane/flood risk"
+JPMorgan Chase,NY,New York,36061,moderate,False,New York City — moderate flood risk
+Duke Energy,NC,Mecklenburg,37119,high,True,"Charlotte, NC — high hurricane exposure, SE utility"
+Nature Conservancy,VA,Arlington,51013,moderate,False,"Arlington, VA — moderate flood risk"
+NY Electric & Gas,NY,Tompkins,36109,high,True,"Ithaca, NY — high winter storm/flood, NE utility"
+Bank of America,NC,Mecklenburg,37119,moderate,False,"Charlotte, NC — moderate hurricane exposure"
